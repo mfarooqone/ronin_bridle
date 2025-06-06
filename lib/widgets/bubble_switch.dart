@@ -40,10 +40,14 @@ class BubbleSwitch extends StatelessWidget {
             child: Text(
               title,
               textAlign: TextAlign.center,
-              style: appTheme.textTheme.bodyMedium?.copyWith(
-                color: value ? AppColors.white : appTheme.iconTheme.color,
-                fontWeight: FontWeight.w600,
-              ),
+              style: appTheme.textTheme.bodyMedium
+                  ?.copyWith(
+                    color:
+                        value
+                            ? AppColors.white
+                            : appTheme.iconTheme.color,
+                    fontWeight: FontWeight.w600,
+                  ),
             ),
           ),
         ),
