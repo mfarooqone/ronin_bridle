@@ -80,7 +80,10 @@ class PrimaryTextField extends StatelessWidget {
       decoration: BoxDecoration(color: backgroungColor),
       width: width,
       height:
-          height + (label != null ? 20 : 0), // leave room for optional label
+          height +
+          (label != null
+              ? 20
+              : 0), // leave room for optional label
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -90,17 +93,20 @@ class PrimaryTextField extends StatelessWidget {
               child: RichText(
                 text: TextSpan(
                   text: label,
-                  style: appTheme.textTheme.bodyMedium?.copyWith(
-                    fontSize: labelFontSize ?? 12,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: appTheme.textTheme.bodyMedium
+                      ?.copyWith(
+                        fontSize: labelFontSize ?? 12,
+                        fontWeight: FontWeight.w600,
+                      ),
                   children: [
                     if (mandatory)
                       TextSpan(
                         text: ' *',
-                        style: appTheme.textTheme.bodyMedium?.copyWith(
-                          color: AppColors.negativeColor,
-                        ),
+                        style: appTheme.textTheme.bodyMedium
+                            ?.copyWith(
+                              color:
+                                  AppColors.negativeColor,
+                            ),
                       ),
                   ],
                 ),
@@ -112,17 +118,22 @@ class PrimaryTextField extends StatelessWidget {
             width: width,
             height: height,
             child: AutoSizeTextField(
+              
               controller: controller,
               minFontSize: 8,
               maxLines: 1,
-              cursorHeight: 12,
+              cursorHeight: 30,
               onTap: onTap,
               obscureText: obscureText,
               enabled: enable,
-              style: appTheme.textTheme.bodyMedium?.copyWith(
-                color: enable ? appTheme.iconTheme.color : calculatedColor,
-                fontWeight: FontWeight.bold,
-              ),
+              style: appTheme.textTheme.bodyMedium
+                  ?.copyWith(
+                    color:
+                        enable
+                            ? appTheme.iconTheme.color
+                            : calculatedColor,
+                    fontWeight: FontWeight.bold,
+                  ),
               onChanged: onChanged,
               maxLength: maxLength,
               textCapitalization: textCapitalization,
