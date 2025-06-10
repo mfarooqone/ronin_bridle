@@ -24,25 +24,28 @@ class _WeightScreenState extends State<WeightScreen> {
   double _rightLeg = 0;
   double _rightVertical = 0;
   double _horizontal = 0;
+  double _wllValue = 0;
+  bool _isExceeded = false;
 
   void _calculateForces() {
     final weight =
         double.tryParse(_weightController.text) ?? 0;
-    // Vertical share: half the weight
+    final wll = double.tryParse(_wllController.text) ?? 0;
     final vertical = weight / 2;
-    // Horizontal force: 30% of the weight
     final horizontal = weight * 0.3;
-    // Leg tension: resultant of vertical & horizontal
     final legTension = sqrt(
       vertical * vertical + horizontal * horizontal,
     );
+    final exceeded = legTension > wll;
 
     setState(() {
+      _wllValue = wll;
       _leftVertical = vertical;
       _rightVertical = vertical;
       _horizontal = horizontal;
       _leftLeg = legTension;
       _rightLeg = legTension;
+      _isExceeded = exceeded;
     });
   }
 
@@ -54,7 +57,7 @@ class _WeightScreenState extends State<WeightScreen> {
 
     final iconSize = h * 0.05;
     final inputHeight = h * 0.04;
-    final inputWidth = w * 0.3;
+    final inputWidth = w * 0.26;
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
@@ -65,126 +68,176 @@ class _WeightScreenState extends State<WeightScreen> {
             child: SizedBox(
               width: w,
               height: h,
-              child: Column(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                      vertical: h * 0.02,
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: w * 0.05,
+                ),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        vertical: h * 0.02,
+                      ),
+                      child: BeamWidget(
+                        iconSize: iconSize,
+                        horizontalForce: _horizontal,
+                      ),
                     ),
-                    child: BeamWidget(
-                      iconSize: iconSize,
-                      horizontalForce: _horizontal,
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: w * 0.05,
-                    ),
-                    child: Row(
-                      mainAxisAlignment:
-                          MainAxisAlignment.spaceBetween,
-                      children: [
-                        _buildForce(
-                          1.5,
-                          'Vertical',
-                          _leftVertical,
-                          iconSize,
-                        ),
-                        _buildForce(
-                          1.0,
-                          'Leg',
-                          _leftLeg,
-                          iconSize,
-                        ),
-                        SizedBox(width: w * 0.08),
-                        _buildForce(
-                          2.0,
-                          'Leg',
-                          _rightLeg,
-                          iconSize,
-                        ),
-                        _buildForce(
-                          1.5,
-                          'Vertical',
-                          _rightVertical,
-                          iconSize,
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: h * 0.02),
-                  Expanded(
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment:
-                              MainAxisAlignment.center,
-                          children: [
-                            Transform.rotate(
-                              angle: 1,
-                              child: Icon(
-                                Icons.arrow_right_alt,
-                                size: iconSize,
-                              ),
-                            ),
-                            Transform.rotate(
-                              angle: 2,
-                              child: Icon(
-                                Icons.arrow_right_alt,
-                                size: iconSize,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Image.asset(
-                          AppAssets.weightImage,
-                          width: w * 0.25,
-                          fit: BoxFit.contain,
-                        ),
-                        SizedBox(height: h * 0.02),
-                        const Icon(
-                          Icons.arrow_downward,
-                          size: 32,
-                        ),
-                        SizedBox(height: h * 0.01),
-                        Text(
-                          'Steel W.L.L.',
-                          style: AppTextStyle.bodySmall,
-                        ),
-                        SizedBox(height: h * 0.01),
-                        PrimaryTextField(
-                          controller: _wllController,
-                          backgroungColor: AppColors.white,
-                          width: inputWidth,
-                          height: inputHeight,
-                        ),
-                        SizedBox(height: h * 0.03),
-                        Text(
-                          'Weight',
-                          style: AppTextStyle.bodySmall,
-                        ),
-                        SizedBox(height: h * 0.01),
-                        PrimaryTextField(
-                          controller: _weightController,
-                          backgroungColor: AppColors.white,
-                          width: inputWidth,
-                          height: inputHeight,
-                        ),
-                        SizedBox(height: h * 0.05),
-                        ElevatedButton(
-                          onPressed: _calculateForces,
-                          child: const Text('Calculate'),
-                          style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 40,
-                              vertical: 12,
-                            ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: w * 0.05,
+                      ),
+                      child: Row(
+                        mainAxisAlignment:
+                            MainAxisAlignment.spaceBetween,
+                        children: [
+                          _buildForce(
+                            1.5,
+                            'Vertical',
+                            _leftVertical,
+                            iconSize,
                           ),
-                        ),
-                      ],
+                          _buildForce(
+                            1.0,
+                            'Leg',
+                            _leftLeg,
+                            iconSize,
+                            _leftLeg > _wllValue,
+                          ),
+                          SizedBox(width: w * 0.08),
+                          _buildForce(
+                            2.0,
+                            'Leg',
+                            _rightLeg,
+                            iconSize,
+                            _rightLeg > _wllValue,
+                          ),
+                          _buildForce(
+                            1.5,
+                            'Vertical',
+                            _rightVertical,
+                            iconSize,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                    if (_isExceeded) ...[
+                      SizedBox(height: h * 0.02),
+                      Text(
+                        'Steel W.L.L. Exceeded!',
+                        style: AppTextStyle.titleSmall
+                            .copyWith(color: AppColors.red),
+                      ),
+                    ],
+                    SizedBox(height: h * 0.02),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment:
+                                MainAxisAlignment.center,
+                            children: [
+                              Transform.rotate(
+                                angle: 1,
+                                child: Icon(
+                                  Icons.arrow_right_alt,
+                                  size: iconSize,
+                                ),
+                              ),
+                              Transform.rotate(
+                                angle: 2,
+                                child: Icon(
+                                  Icons.arrow_right_alt,
+                                  size: iconSize,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Image.asset(
+                            AppAssets.weightImage,
+                            width: w * 0.25,
+                            fit: BoxFit.contain,
+                          ),
+                          SizedBox(height: h * 0.02),
+
+                          const Icon(
+                            Icons.arrow_downward,
+                            size: 32,
+                          ),
+                          SizedBox(height: h * 0.01),
+
+                          ///
+                          ///
+                          ///
+                          ///
+                          Row(
+                            children: [
+                              Column(
+                                children: [
+                                  Text(
+                                    'Steel W.L.L.',
+                                    style:
+                                        AppTextStyle
+                                            .bodySmall,
+                                  ),
+                                  SizedBox(
+                                    height: h * 0.01,
+                                  ),
+                                  PrimaryTextField(
+                                    controller:
+                                        _wllController,
+                                    backgroungColor:
+                                        AppColors.white,
+                                    width: inputWidth,
+                                    height: inputHeight,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _calculateForces();
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
+                              SizedBox(width: w * 0.05),
+
+                              ///
+                              ///
+                              ///
+                              Column(
+                                children: [
+                                  Text(
+                                    'Weight',
+                                    style:
+                                        AppTextStyle
+                                            .bodySmall,
+                                  ),
+                                  SizedBox(
+                                    height: h * 0.01,
+                                  ),
+                                  PrimaryTextField(
+                                    controller:
+                                        _weightController,
+                                    backgroungColor:
+                                        AppColors.white,
+                                    width: inputWidth,
+                                    height: inputHeight,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _calculateForces();
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+
+                          SizedBox(height: h * 0.05),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -197,8 +250,11 @@ class _WeightScreenState extends State<WeightScreen> {
     double angle,
     String label,
     double value,
-    double iconSize,
-  ) {
+    double iconSize, [
+    bool isOverload = false,
+  ]) {
+    final textColor =
+        isOverload ? AppColors.red : AppColors.black;
     return Column(
       children: [
         Transform.rotate(
@@ -206,12 +262,20 @@ class _WeightScreenState extends State<WeightScreen> {
           child: Icon(
             Icons.arrow_right_alt,
             size: iconSize,
+            color: isOverload ? AppColors.red : null,
           ),
         ),
-        Text(label, style: AppTextStyle.titleSmall),
+        Text(
+          label,
+          style: AppTextStyle.titleSmall.copyWith(
+            color: textColor,
+          ),
+        ),
         Text(
           value.toStringAsFixed(2),
-          style: AppTextStyle.titleSmall,
+          style: AppTextStyle.titleSmall.copyWith(
+            color: textColor,
+          ),
         ),
       ],
     );
