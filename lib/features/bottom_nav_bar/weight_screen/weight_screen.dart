@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:clay_rigging_bridle/features/bottom_nav_bar/setting_screen/setting_screen.dart';
 import 'package:clay_rigging_bridle/utils/app_assets.dart';
 import 'package:clay_rigging_bridle/utils/app_colors.dart';
 import 'package:clay_rigging_bridle/utils/app_text_styles.dart';
@@ -56,7 +57,7 @@ class _WeightScreenState extends State<WeightScreen> {
     final h = size.height;
 
     final iconSize = h * 0.05;
-    final inputHeight = h * 0.04;
+    final inputHeight = h * 0.08;
     final inputWidth = w * 0.26;
 
     return GestureDetector(
@@ -65,15 +66,31 @@ class _WeightScreenState extends State<WeightScreen> {
         resizeToAvoidBottomInset: false,
         body: SafeArea(
           child: SingleChildScrollView(
-            child: SizedBox(
-              width: w,
-              height: h,
+            child: Expanded(
               child: Padding(
                 padding: EdgeInsets.symmetric(
                   horizontal: w * 0.05,
                 ),
                 child: Column(
                   children: [
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: IconButton(
+                        onPressed: () {
+                          showPreferencesDialog(
+                            context: context,
+                            title: "Weights",
+                            body:
+                                'In this window all the various loads within the bridle & beams are shown, to change the weight in the apex, tap the text field.',
+                          );
+                        },
+                        icon: Icon(
+                          Icons.info_outline,
+                          color: AppColors.primaryColor,
+                          size: 30,
+                        ),
+                      ),
+                    ),
                     Padding(
                       padding: EdgeInsets.symmetric(
                         vertical: h * 0.02,
@@ -130,111 +147,107 @@ class _WeightScreenState extends State<WeightScreen> {
                       ),
                     ],
                     SizedBox(height: h * 0.02),
-                    Expanded(
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment:
-                                MainAxisAlignment.center,
-                            children: [
-                              Transform.rotate(
-                                angle: 1,
-                                child: Icon(
-                                  Icons.arrow_right_alt,
-                                  size: iconSize,
-                                ),
-                              ),
-                              Transform.rotate(
-                                angle: 2,
-                                child: Icon(
-                                  Icons.arrow_right_alt,
-                                  size: iconSize,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Image.asset(
-                            AppAssets.weightImage,
-                            width: w * 0.25,
-                            fit: BoxFit.contain,
-                          ),
-                          SizedBox(height: h * 0.02),
 
-                          const Icon(
-                            Icons.arrow_downward,
-                            size: 32,
-                          ),
-                          SizedBox(height: h * 0.01),
+                    ///
+                    ///
+                    ///
+                    Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment:
+                              MainAxisAlignment.center,
+                          children: [
+                            Transform.rotate(
+                              angle: 1,
+                              child: Icon(
+                                Icons.arrow_right_alt,
+                                size: iconSize,
+                              ),
+                            ),
+                            Transform.rotate(
+                              angle: 2,
+                              child: Icon(
+                                Icons.arrow_right_alt,
+                                size: iconSize,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Image.asset(
+                          AppAssets.weightImage,
+                          width: w * 0.25,
+                          fit: BoxFit.contain,
+                        ),
+                        SizedBox(height: h * 0.02),
 
-                          ///
-                          ///
-                          ///
-                          ///
-                          Row(
-                            children: [
-                              Column(
-                                children: [
-                                  Text(
-                                    'Steel W.L.L.',
-                                    style:
-                                        AppTextStyle
-                                            .bodySmall,
-                                  ),
-                                  SizedBox(
-                                    height: h * 0.01,
-                                  ),
-                                  PrimaryTextField(
+                        const Icon(
+                          Icons.arrow_downward,
+                          size: 32,
+                        ),
+                        SizedBox(height: h * 0.01),
+
+                        ///
+                        ///
+                        ///
+                        ///
+                        Row(
+                          children: [
+                            Column(
+                              children: [
+                                Text(
+                                  'Steel W.L.L.',
+                                  style:
+                                      AppTextStyle
+                                          .bodySmall,
+                                ),
+                                SizedBox(height: h * 0.01),
+                                SizedBox(
+                                  width: inputWidth,
+                                  height: inputHeight,
+                                  child: PrimaryTextField(
                                     controller:
                                         _wllController,
-                                    backgroungColor:
-                                        AppColors.white,
-                                    width: inputWidth,
-                                    height: inputHeight,
                                     onChanged: (value) {
                                       setState(() {
                                         _calculateForces();
                                       });
                                     },
                                   ),
-                                ],
-                              ),
-                              SizedBox(width: w * 0.05),
+                                ),
+                              ],
+                            ),
+                            SizedBox(width: w * 0.05),
 
-                              ///
-                              ///
-                              ///
-                              Column(
-                                children: [
-                                  Text(
-                                    'Weight',
-                                    style:
-                                        AppTextStyle
-                                            .bodySmall,
-                                  ),
-                                  SizedBox(
-                                    height: h * 0.01,
-                                  ),
-                                  PrimaryTextField(
+                            ///
+                            ///
+                            ///
+                            Column(
+                              children: [
+                                Text(
+                                  'Weight',
+                                  style:
+                                      AppTextStyle
+                                          .bodySmall,
+                                ),
+                                SizedBox(height: h * 0.01),
+                                SizedBox(
+                                  width: inputWidth,
+                                  height: inputHeight,
+                                  child: PrimaryTextField(
                                     controller:
                                         _weightController,
-                                    backgroungColor:
-                                        AppColors.white,
-                                    width: inputWidth,
-                                    height: inputHeight,
                                     onChanged: (value) {
                                       setState(() {
                                         _calculateForces();
                                       });
                                     },
                                   ),
-                                ],
-                              ),
-                            ],
-                          ),
-
-                          SizedBox(height: h * 0.05),
-                        ],
-                      ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ],
                 ),

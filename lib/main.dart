@@ -32,7 +32,7 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primaryColor: AppColors.primaryColor,
-        scaffoldBackgroundColor: AppColors.greyColor,
+        scaffoldBackgroundColor: AppColors.white,
       ),
       // initialBinding: createBindings(context),
       navigatorObservers: [routeObserver],

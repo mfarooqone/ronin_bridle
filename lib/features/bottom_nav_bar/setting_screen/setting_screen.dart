@@ -53,7 +53,13 @@ class _SettingScreenState extends State<SettingScreen> {
                 alignment: Alignment.topRight,
                 child: IconButton(
                   onPressed: () {
-                    _showPreferencesDialog(context);
+                    showPreferencesDialog(
+                      context: context,
+                      title: "Preferences",
+                      body:
+                          'Choose to work in imperial or metric and tap the available '
+                          'hardware button to change your hardware.',
+                    );
                   },
                   icon: Icon(
                     Icons.info_outline,
@@ -139,32 +145,32 @@ class _SettingScreenState extends State<SettingScreen> {
       ),
     );
   }
+}
 
-  void _showPreferencesDialog(BuildContext context) {
-    showCupertinoDialog(
-      context: context,
-      builder:
-          (ctx) => CupertinoAlertDialog(
-            title: const Text('Preferences'),
-            content: const Padding(
-              padding: EdgeInsets.only(top: 8.0),
+void showPreferencesDialog({
+  required BuildContext context,
+  required String title,
+  required String body,
+}) {
+  showCupertinoDialog(
+    context: context,
+    builder:
+        (ctx) => CupertinoAlertDialog(
+          title: Text(title),
+          content: Padding(
+            padding: EdgeInsets.only(top: 8.0),
+            child: Text(body, textAlign: TextAlign.center),
+          ),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () => Navigator.of(ctx).pop(),
+              isDefaultAction: true,
               child: Text(
-                'Choose to work in imperial or metric and tap the available '
-                'hardware button to change your hardware.',
-                textAlign: TextAlign.center,
+                'Ok',
+                style: AppTextStyle.titleLarge,
               ),
             ),
-            actions: [
-              CupertinoDialogAction(
-                onPressed: () => Navigator.of(ctx).pop(),
-                isDefaultAction: true,
-                child: Text(
-                  'Ok',
-                  style: AppTextStyle.titleLarge,
-                ),
-              ),
-            ],
-          ),
-    );
-  }
+          ],
+        ),
+  );
 }
