@@ -62,29 +62,42 @@ class _WeightScreenState extends State<WeightScreen> {
                     child: Row(
                       mainAxisAlignment:
                           MainAxisAlignment.spaceBetween,
-                      children: List.generate(2, (side) {
-                        // side = 0 is left pair, side = 1 right pair
-                        return Row(
-                          children: [
-                            _buildForceColumn(
-                              iconAngle:
-                                  side == 0 ? 1.5 : 2.0,
-                              label: 'Vertical',
-                              value: '0.00',
-                              iconSize: iconSize,
-                              valueFont: valueFont,
-                            ),
-                            SizedBox(width: w * 0.08),
-                            _buildForceColumn(
-                              iconAngle: 1.0,
-                              label: 'Leg',
-                              value: '0.00',
-                              iconSize: iconSize,
-                              valueFont: valueFont,
-                            ),
-                          ],
-                        );
-                      }),
+                      children: [
+                        _buildForce(
+                          iconAngle: 1.5,
+                          label: 'Vertical',
+                          value: '0.00',
+                          iconSize: iconSize,
+                          valueFont: valueFont,
+                        ),
+                        _buildForce(
+                          iconAngle: 1.0,
+                          label: 'Leg',
+                          value: '0.00',
+                          iconSize: iconSize,
+                          valueFont: valueFont,
+                        ),
+                        SizedBox(width: w * 0.08),
+
+                        ///
+                        ///
+                        ///
+                        _buildForce(
+                          iconAngle: 2,
+                          label: 'Leg',
+                          value: '0.00',
+                          iconSize: iconSize,
+                          valueFont: valueFont,
+                        ),
+
+                        _buildForce(
+                          iconAngle: 1.5,
+                          label: 'Vertical',
+                          value: '0.00',
+                          iconSize: iconSize,
+                          valueFont: valueFont,
+                        ),
+                      ],
                     ),
                   ),
 
@@ -166,7 +179,7 @@ class _WeightScreenState extends State<WeightScreen> {
     );
   }
 
-  Widget _buildForceColumn({
+  Widget _buildForce({
     required double iconAngle,
     required String label,
     required String value,
