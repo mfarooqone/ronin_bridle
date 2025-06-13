@@ -48,4 +48,6 @@ class AppAssets {
       "assets/images/pages/left_guard.png";
   static const String weightImage =
       "assets/images/pages/weight.png";
+  static const String measurementPage =
+      "assets/images/measurement_page.png";
 }

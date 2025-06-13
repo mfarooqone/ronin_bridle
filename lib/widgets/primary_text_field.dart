@@ -32,6 +32,7 @@ class PrimaryTextField extends StatelessWidget {
   final Widget? suffixIcon;
   final InputBorder? border;
   final double? labelFontSize;
+  final Color? color;
 
   const PrimaryTextField({
     super.key,
@@ -61,6 +62,7 @@ class PrimaryTextField extends StatelessWidget {
     this.suffixIcon,
     this.border,
     this.labelFontSize,
+    this.color = Colors.transparent,
   });
 
   @override
@@ -72,6 +74,7 @@ class PrimaryTextField extends StatelessWidget {
         children: [
           label != null
               ? Container(
+                color: color,
                 margin: const EdgeInsets.only(bottom: 8.0),
                 child: Row(
                   children: [
@@ -137,27 +140,42 @@ class PrimaryTextField extends StatelessWidget {
               hintStyle: appTheme.textTheme.bodySmall,
               prefixIcon: prefixIcon,
               suffixIcon: suffixIcon,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-                borderSide: BorderSide(
-                  color: Theme.of(context).primaryColor,
-                  width: 1.5,
-                ),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-                borderSide: BorderSide(
-                  color: Theme.of(context).primaryColor,
-                  width: 1.5,
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.0),
-                borderSide: BorderSide(
-                  color: Theme.of(context).primaryColor,
-                  width: 2.0,
-                ),
-              ),
+              isDense:
+                  true, // makes default paddings smaller
+
+              border:
+                  border ??
+                  OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(
+                      12.0,
+                    ),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).primaryColor,
+                      width: 1.5,
+                    ),
+                  ),
+              enabledBorder:
+                  border ??
+                  OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(
+                      12.0,
+                    ),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).primaryColor,
+                      width: 1.5,
+                    ),
+                  ),
+              focusedBorder:
+                  border ??
+                  OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(
+                      12.0,
+                    ),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).primaryColor,
+                      width: 2.0,
+                    ),
+                  ),
               suffixIconConstraints: const BoxConstraints(
                 maxWidth: 80,
                 maxHeight: 50,
