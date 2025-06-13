@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:clay_rigging_bridle/utils/app_assets.dart';
 import 'package:clay_rigging_bridle/utils/app_colors.dart';
 import 'package:clay_rigging_bridle/utils/app_text_styles.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class MeasurementPage extends StatefulWidget {
@@ -13,256 +14,405 @@ class MeasurementPage extends StatefulWidget {
 }
 
 class _MeasurementPageState extends State<MeasurementPage> {
-  String beamValue = "13";
-  String angleValue = "13";
-  String leftLegValue = "12";
-  String rightLegValue = "12";
-  String leftBeamValue = "12";
-  String rightBeamValue = "12";
-  String pointDistanceValue = "12";
-  String apexHeightValue = "12";
+  // ── Raw inputs ──
+  double beamDist = 1.11;
+  double leftLeg = 0.98;
+  double rightLeg = 0.98;
+  double leftDrop = 1.11;
+  double rightDrop = 1.11;
+  double pointDist = 0.55;
+  double apexHeight = 0.00;
 
-  void calculateMeasurements({
-    required double beamDist,
-    required double leftDrop,
-    required double rightDrop,
-    required double pointDist,
-  }) {
+  // ── Display strings ──
+  String beamValue = '';
+  String leftLegValue = '';
+  String rightLegValue = '';
+  String leftBeamValue = '';
+  String rightBeamValue = '';
+  String pointDistanceValue = '';
+  String apexHeightValue = '';
+  String angleValue = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _recalculate();
+  }
+
+  void _recalculate() {
+    // ── 1) compute vertical component of each leg ──
     final halfSpan = beamDist / 2.0;
-
-    // 1. leg lengths
-    final leftLeg = math.sqrt(
-      halfSpan * halfSpan + leftDrop * leftDrop,
+    final vertL = math.sqrt(
+      math.max(
+        0.0,
+        leftLeg * leftLeg - halfSpan * halfSpan,
+      ),
     );
-    final rightLeg = math.sqrt(
-      halfSpan * halfSpan + rightDrop * rightDrop,
+    final vertR = math.sqrt(
+      math.max(
+        0.0,
+        rightLeg * rightLeg - halfSpan * halfSpan,
+      ),
     );
 
-    // 2. apex‐to‐shackle height
-    final apexHeight =
-        math.min(leftDrop, rightDrop) - pointDist;
+    // ── 2) how far below each beam the hook sits ──
+    final hookDownL = leftDrop - vertL;
+    final hookDownR = rightDrop - vertR;
 
-    // 3. apex angle (in radians → degrees)
-    final cosApex =
+    // ── 3) choose the smaller (most conservative) side ──
+    apexHeight = math.min(hookDownL, hookDownR);
+
+    // ── 4) law of cosines for the apex angle ──
+    final rawCos =
         (leftLeg * leftLeg +
             rightLeg * rightLeg -
             beamDist * beamDist) /
         (2 * leftLeg * rightLeg);
-    final apexAngleRad = math.acos(
-      cosApex.clamp(-1.0, 1.0),
-    );
-    final apexAngleDeg = apexAngleRad * 180 / math.pi;
+    final cosA = rawCos.clamp(-1.0, 1.0);
+    final rad = math.acos(cosA);
+    final deg = rad * 180 / math.pi;
 
+    // ── 5) update all displayed strings ──
     setState(() {
       beamValue = beamDist.toStringAsFixed(2);
+      leftLegValue = leftLeg.toStringAsFixed(2);
+      rightLegValue = rightLeg.toStringAsFixed(2);
       leftBeamValue = leftDrop.toStringAsFixed(2);
       rightBeamValue = rightDrop.toStringAsFixed(2);
       pointDistanceValue = pointDist.toStringAsFixed(2);
-
-      leftLegValue = leftLeg.toStringAsFixed(2);
-      rightLegValue = rightLeg.toStringAsFixed(2);
       apexHeightValue = apexHeight.toStringAsFixed(2);
-      angleValue = apexAngleDeg.toStringAsFixed(
-        1,
-      ); // one decimal
+      angleValue = '${deg.toStringAsFixed(0)}°';
     });
   }
+
+  Future<void> _showPicker({
+    required String title,
+    required double currentValue,
+    required ValueChanged<double> onConfirm,
+    bool skipRecalc = false,
+  }) async {
+    final ints = List<int>.generate(100, (i) => i);
+    final tenths = List<int>.generate(10, (i) => i);
+    final hunds = List<int>.generate(10, (i) => i);
+
+    int i0 = ints
+        .indexWhere((v) => v == currentValue.floor())
+        .clamp(0, 99);
+    int i1 = ((currentValue * 10).floor() % 10).clamp(0, 9);
+    int i2 = ((currentValue * 100).floor() % 10).clamp(
+      0,
+      9,
+    );
+
+    await showCupertinoModalPopup(
+      context: context,
+      builder:
+          (ctx) => Container(
+            height: 300,
+            color: Colors.white,
+            child: Column(
+              children: [
+                // toolbar
+                SizedBox(
+                  height: 44,
+                  child: Row(
+                    mainAxisAlignment:
+                        MainAxisAlignment.spaceBetween,
+                    children: [
+                      CupertinoButton(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                        ),
+                        child: const Text('Cancel'),
+                        onPressed:
+                            () => Navigator.of(ctx).pop(),
+                      ),
+                      Text(
+                        title,
+                        style: AppTextStyle.titleSmall,
+                      ),
+                      CupertinoButton(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                        ),
+                        child: const Text('Done'),
+                        onPressed: () {
+                          final val =
+                              ints[i0] +
+                              tenths[i1] / 10 +
+                              hunds[i2] / 100;
+                          onConfirm(val);
+                          Navigator.of(ctx).pop();
+                          if (!skipRecalc) _recalculate();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+
+                // three‐column picker
+                Expanded(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: CupertinoPicker(
+                          scrollController:
+                              FixedExtentScrollController(
+                                initialItem: i0,
+                              ),
+                          itemExtent: 32,
+                          onSelectedItemChanged:
+                              (x) => i0 = x.clamp(0, 99),
+                          children:
+                              ints
+                                  .map(
+                                    (v) => Center(
+                                      child: Text(
+                                        v
+                                            .toString()
+                                            .padLeft(
+                                              2,
+                                              '0',
+                                            ),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                        ),
+                      ),
+                      Expanded(
+                        child: CupertinoPicker(
+                          scrollController:
+                              FixedExtentScrollController(
+                                initialItem: i1,
+                              ),
+                          itemExtent: 32,
+                          onSelectedItemChanged:
+                              (x) => i1 = x.clamp(0, 9),
+                          children:
+                              tenths
+                                  .map(
+                                    (v) => Center(
+                                      child: Text('.${v}'),
+                                    ),
+                                  )
+                                  .toList(),
+                        ),
+                      ),
+                      Expanded(
+                        child: CupertinoPicker(
+                          scrollController:
+                              FixedExtentScrollController(
+                                initialItem: i2,
+                              ),
+                          itemExtent: 32,
+                          onSelectedItemChanged:
+                              (x) => i2 = x.clamp(0, 9),
+                          children:
+                              hunds
+                                  .map(
+                                    (v) => Center(
+                                      child: Text(
+                                        v.toString(),
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+    );
+  }
+
+  Widget _inputBox({
+    required double top,
+    required double left,
+    required String display,
+    required String title,
+    required VoidCallback onTap,
+  }) => Positioned(
+    top: top,
+    left: left,
+    child: GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 72,
+        height: 40,
+        // color: Colors.red.withOpacity(0.3),
+        alignment: Alignment.center,
+        child: Text(display, style: AppTextStyle.bodySmall),
+      ),
+    ),
+  );
+
+  Widget _outputBox({
+    required double top,
+    required double left,
+    required String display,
+  }) => Positioned(
+    top: top,
+    left: left,
+    child: Container(
+      width: 72,
+      height: 40,
+      // color: Colors.green.withOpacity(0.3),
+      alignment: Alignment.center,
+      child: Text(display, style: AppTextStyle.bodySmall),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
-      child: Stack(
-        children: [
-          Scaffold(
-            resizeToAvoidBottomInset: false,
-            backgroundColor: Colors.white,
-            body: SingleChildScrollView(
-              child: SafeArea(
-                child: Column(
-                  children: [
-                    const SizedBox(height: 10),
-                    Text(
-                      'Rigging Bridle Measurement',
-                      style: AppTextStyle.titleMedium
-                          .copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primaryColor,
-                          ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      "Let’s start exploring with us in just\nfew steps away",
-                      style: AppTextStyle.titleSmall,
-                      textAlign: TextAlign.center,
-                    ),
-
-                    // ── diagram & inputs ──
-                    Center(
-                      child: Container(
-                        width: 360,
-                        height: 600,
-                        child: Stack(
-                          children: [
-                            Positioned.fill(
-                              child: Image.asset(
-                                AppAssets.measurementPage,
-                              ),
-                            ),
-
-                            // beam distance
-                            Positioned(
-                              top: 78,
-                              left: 145,
-                              child: GestureDetector(
-                                onTap: () {
-                                  //open value picker
-                                },
-                                child: Container(
-                                  width: 72,
-                                  height: 40,
-                                  color: Colors.red
-                                      .withValues(
-                                        alpha: 0.3,
-                                      ),
-                                  child: Text(
-                                    beamValue,
-                                    style:
-                                        AppTextStyle
-                                            .bodySmall,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            // Angle
-                            Positioned(
-                              top: 158,
-                              left: 145,
-                              child: Container(
-                                width: 72,
-                                height: 40,
-                                color: Colors.red
-                                    .withValues(alpha: 0.3),
-                                child: Text(
-                                  angleValue,
-                                  style:
-                                      AppTextStyle
-                                          .bodySmall,
-                                ),
-                              ),
-                            ),
-                            // left leg
-                            Positioned(
-                              top: 215,
-                              left: 80,
-                              child: Container(
-                                width: 72,
-                                height: 40,
-                                color: Colors.red
-                                    .withValues(alpha: 0.3),
-                                child: Text(
-                                  leftLegValue,
-                                  style:
-                                      AppTextStyle
-                                          .bodySmall,
-                                ),
-                              ),
-                            ),
-                            // right leg
-                            Positioned(
-                              top: 215,
-                              left: 206,
-                              child: Container(
-                                width: 72,
-                                height: 40,
-                                color: Colors.red
-                                    .withValues(alpha: 0.3),
-                                child: Text(
-                                  rightLegValue,
-                                  style:
-                                      AppTextStyle
-                                          .bodySmall,
-                                ),
-                              ),
-                            ),
-                            // left beam height
-                            Positioned(
-                              top: 263,
-                              left: 5,
-                              child: Container(
-                                width: 72,
-                                height: 40,
-                                color: Colors.red
-                                    .withValues(alpha: 0.3),
-                                child: Text(
-                                  leftBeamValue,
-                                  style:
-                                      AppTextStyle
-                                          .bodySmall,
-                                ),
-                              ),
-                            ),
-                            // right beam height
-                            Positioned(
-                              top: 263,
-                              left: 283,
-                              child: Container(
-                                width: 72,
-                                height: 40,
-                                color: Colors.red
-                                    .withValues(alpha: 0.3),
-                                child: Text(
-                                  rightBeamValue,
-                                  style:
-                                      AppTextStyle
-                                          .bodySmall,
-                                ),
-                              ),
-                            ),
-                            // point distance
-                            Positioned(
-                              top: 416,
-                              left: 65,
-                              child: Container(
-                                width: 72,
-                                height: 40,
-                                color: Colors.red
-                                    .withValues(alpha: 0.3),
-                                child: Text(
-                                  pointDistanceValue,
-                                  style:
-                                      AppTextStyle
-                                          .bodySmall,
-                                ),
-                              ),
-                            ),
-                            // Apex height
-                            Positioned(
-                              top: 473,
-                              left: 148,
-                              child: Container(
-                                width: 72,
-                                height: 40,
-                                color: Colors.red
-                                    .withValues(alpha: 0.3),
-                                child: Text(
-                                  apexHeightValue,
-                                  style:
-                                      AppTextStyle
-                                          .bodySmall,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                const SizedBox(height: 10),
+                Text(
+                  'Rigging Bridle Measurement',
+                  style: AppTextStyle.titleMedium.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryColor,
+                  ),
                 ),
-              ),
+                const SizedBox(height: 10),
+                Text(
+                  "Let’s start exploring with us in just\nfew steps away",
+                  style: AppTextStyle.titleSmall,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                Center(
+                  child: Container(
+                    width: 360,
+                    height: 600,
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: Image.asset(
+                            AppAssets.measurementPage,
+                          ),
+                        ),
+
+                        // Inputs
+                        _inputBox(
+                          top: 78,
+                          left: 145,
+                          display: beamValue,
+                          title: 'Beam Distance',
+                          onTap:
+                              () => _showPicker(
+                                title: 'Beam Distance',
+                                currentValue: beamDist,
+                                onConfirm:
+                                    (v) => beamDist = v,
+                              ),
+                        ),
+                        _inputBox(
+                          top: 214,
+                          left: 80,
+                          display: leftLegValue,
+                          title: 'Left Leg',
+                          onTap:
+                              () => _showPicker(
+                                title: 'Left Leg',
+                                currentValue: leftLeg,
+                                onConfirm:
+                                    (v) => leftLeg = v,
+                              ),
+                        ),
+                        _inputBox(
+                          top: 214,
+                          left: 206,
+                          display: rightLegValue,
+                          title: 'Right Leg',
+                          onTap:
+                              () => _showPicker(
+                                title: 'Right Leg',
+                                currentValue: rightLeg,
+                                onConfirm:
+                                    (v) => rightLeg = v,
+                              ),
+                        ),
+                        _inputBox(
+                          top: 263,
+                          left: 5,
+                          display: leftBeamValue,
+                          title: 'Beam Height',
+                          onTap:
+                              () => _showPicker(
+                                title: 'Beam Height',
+                                currentValue: leftDrop,
+                                onConfirm:
+                                    (v) => leftDrop = v,
+                              ),
+                        ),
+                        _inputBox(
+                          top: 263,
+                          left: 283,
+                          display: rightBeamValue,
+                          title: 'Beam Height',
+                          onTap:
+                              () => _showPicker(
+                                title: 'Beam Height',
+                                currentValue: rightDrop,
+                                onConfirm:
+                                    (v) => rightDrop = v,
+                              ),
+                        ),
+                        _inputBox(
+                          top: 416,
+                          left: 65,
+                          display: pointDistanceValue,
+                          title: 'Point Distance',
+                          onTap:
+                              () => _showPicker(
+                                title: 'Point Distance',
+                                currentValue: pointDist,
+                                onConfirm:
+                                    (v) => pointDist = v,
+                              ),
+                        ),
+                        _inputBox(
+                          top: 474,
+                          left: 147,
+                          display: apexHeightValue,
+                          title: 'Apex Height',
+                          onTap:
+                              () => _showPicker(
+                                title: 'Apex Height',
+                                currentValue: apexHeight,
+                                onConfirm:
+                                    (v) => apexHeight = v,
+                                skipRecalc: true,
+                              ),
+                        ),
+
+                        // Output (angle)
+                        _outputBox(
+                          top: 158,
+                          left: 145,
+                          display: angleValue,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
