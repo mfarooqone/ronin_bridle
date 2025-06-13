@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:clay_rigging_bridle/features/bottom_nav_bar/setting_screen/setting_screen.dart';
 import 'package:clay_rigging_bridle/utils/app_assets.dart';
 import 'package:clay_rigging_bridle/utils/app_colors.dart';
 import 'package:clay_rigging_bridle/utils/app_text_styles.dart';
@@ -408,7 +409,24 @@ class _MeasurementPageState extends State<MeasurementPage> {
                   ),
                 ),
 
-                const SizedBox(height: 20),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    onPressed: () {
+                      showPreferencesDialog(
+                        context: context,
+                        title: "Measurements",
+                        body:
+                            'Both beams and the shackle are touch sensitive and you can drag them in any direction to fine tune your measurements. Tap one of the text fields to enter your values directly.',
+                      );
+                    },
+                    icon: Icon(
+                      Icons.info_outline,
+                      color: AppColors.primaryColor,
+                      size: 30,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
