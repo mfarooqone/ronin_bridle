@@ -1,5 +1,6 @@
+import 'package:clay_rigging_bridle/utils/app_colors.dart';
 import 'package:clay_rigging_bridle/utils/app_text_styles.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:clay_rigging_bridle/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
 
 class AvailableHardwareScreen extends StatefulWidget {
@@ -15,7 +16,7 @@ class _AvailableHardwareScreenState
     extends State<AvailableHardwareScreen> {
   // Sample data grouped by section
   final Map<String, List<String>> _sections = {
-    '1 – IMPERIAL STEELS': [
+    'Imperial Steels': [
       "1' Steel",
       "2' Steel",
       "2'6\" Steel",
@@ -31,7 +32,7 @@ class _AvailableHardwareScreenState
       "60' Steel",
       "100' Steel",
     ],
-    '2 – METRIC STEELS': [
+    'Metric Steels': [
       "0,25 m Steel",
       "0,5 m Steel",
       "0,75 m Steel",
@@ -51,7 +52,7 @@ class _AvailableHardwareScreenState
       "20 m Steel",
       "30 m Steel",
     ],
-    '3 – IMPERIAL BASKETS': [
+    'Imperial Baskets': [
       "2' Basket",
       "2'6\" Basket",
       "3' Basket",
@@ -67,7 +68,7 @@ class _AvailableHardwareScreenState
       "5' – 10' Split Basket",
       "10' – 20' Split Basket",
     ],
-    '4 – METRIC BASKETS': [
+    'Metric Baskets': [
       "0,5 m Basket",
       "0,75 m Basket",
       "1 m Basket",
@@ -83,7 +84,7 @@ class _AvailableHardwareScreenState
       "10 m Basket",
       "20 m Basket",
     ],
-    '5 – DECKS & CLUTCHES': [
+    'Decks & Clutches': [
       "3' Deck 3\" links",
       "4' Deck 3\" links",
       "5' Deck 3\" links",
@@ -99,19 +100,19 @@ class _AvailableHardwareScreenState
     ],
   };
 
-  // Keep track of switch states:
+  // Keep track of On/Off for each item
   final Map<String, bool> _selected = {};
 
   @override
   void initState() {
     super.initState();
-    // Initialize all switches to false
-    for (final section in _sections.values) {
-      for (final item in section) {
+    // init all to false
+    for (final items in _sections.values) {
+      for (final item in items) {
         _selected[item] = false;
       }
     }
-    // Example pre-selected items to match screenshots:
+    // some example defaults
     _selected["3 m Basket"] = true;
     _selected["1,5 m Basket"] = true;
     _selected["4' Deck 4\" links"] = true;
@@ -124,103 +125,107 @@ class _AvailableHardwareScreenState
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final height = size.height;
-    final width = size.width;
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Available Hardware'),
-        centerTitle: true,
-        leading: CupertinoButton(
-          padding: EdgeInsets.zero,
-          child: const Text(
-            'Done',
-            style: TextStyle(color: Colors.blue),
-          ),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        foregroundColor: Colors.black,
-      ),
-      body: SizedBox(
-        width: width,
-        height: height,
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              ListView.builder(
-                physics: NeverScrollableScrollPhysics(),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              color: AppColors.primaryColor,
+
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment:
+                      MainAxisAlignment.spaceBetween,
+                  children: [
+                    SizedBox(
+                      width: 50,
+                      height: 40,
+                      child: PrimaryButton(
+                        borderColor: Colors.white,
+                        backgroundColor: AppColors.white,
+                        textStyle: AppTextStyle.titleSmall
+                            .copyWith(
+                              color: AppColors.primaryColor,
+                            ),
+                        title: "Done",
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ),
+
+                    Text(
+                      'Rigging Bridle Measurement',
+                      style: AppTextStyle.titleSmall
+                          .copyWith(color: AppColors.white),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      icon: Icon(
+                        Icons.arrow_forward,
+                        color: AppColors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
                 shrinkWrap: true,
                 itemCount:
                     _sections.keys.length +
                     _totalItemCount(),
-                itemBuilder: (context, index) {
-                  // Flattened index logic: find if this index is a section header or an item
-                  var runningIndex = 0;
-                  for (final sectionTitle
-                      in _sections.keys) {
-                    // Section header
-                    if (index == runningIndex) {
-                      return _buildSectionHeader(
-                        sectionTitle,
-                        width,
-                      );
-                    }
-                    runningIndex++;
-
-                    // Section items
-                    final items = _sections[sectionTitle]!;
-                    if (index <
-                        runningIndex + items.length) {
-                      final itemLabel =
-                          items[index - runningIndex];
-                      return _buildListItem(itemLabel);
-                    }
-                    runningIndex += items.length;
-                  }
-                  return const SizedBox.shrink();
-                },
+                itemBuilder: _itemBuilder,
               ),
-              Padding(
-                padding: EdgeInsets.all(width * 0.05),
-                child: Text(
-                  "Only one selection is allowed, from Deck Chains and Clutches!",
-                  style: AppTextStyle.bodyMedium,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  int _totalItemCount() {
-    // Total sections + total number of items
-    var count = 0;
-    for (final items in _sections.values) {
-      count += items.length;
+  int _totalItemCount() => _sections.values.fold(
+    0,
+    (sum, list) => sum + list.length,
+  );
+
+  Widget _itemBuilder(BuildContext context, int index) {
+    var running = 0;
+    for (final entry in _sections.entries) {
+      // header
+      if (index == running) {
+        return _buildSectionHeader(entry.key);
+      }
+      running++;
+      // items
+      if (index < running + entry.value.length) {
+        final label = entry.value[index - running];
+        return _buildListItem(label);
+      }
+      running += entry.value.length;
     }
-    return _sections.keys.length + count;
+    return const SizedBox.shrink();
   }
 
-  Widget _buildSectionHeader(String title, double width) {
+  Widget _buildSectionHeader(String title) {
     return Container(
-      width: width,
-      color: Colors.grey.shade200,
+      width: double.infinity,
+      color: const Color(0xFFF2F2F2),
       padding: const EdgeInsets.symmetric(
-        vertical: 8.0,
-        horizontal: 16.0,
+        horizontal: 16,
+        vertical: 8,
       ),
       child: Text(
         title,
-        style: const TextStyle(
-          color: Colors.grey,
+        style: TextStyle(
+          color: Colors.grey[600],
           fontWeight: FontWeight.bold,
+          fontSize: 13,
         ),
       ),
     );
@@ -229,22 +234,67 @@ class _AvailableHardwareScreenState
   Widget _buildListItem(String label) {
     return Column(
       children: [
-        ListTile(
-          title: Text(label),
-          trailing: CupertinoSwitch(
-            value: _selected[label]!,
-            onChanged: (bool value) {
-              setState(() {
-                _selected[label] = value;
-              });
-            },
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
           ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16.0,
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  style: AppTextStyle.bodyMedium,
+                ),
+              ),
+              // two separate pills
+              _buildToggleButton(label, true), // On
+              const SizedBox(width: 12),
+              _buildToggleButton(label, false), // Off
+            ],
           ),
         ),
-        const Divider(height: 1),
+        const Divider(height: 1, thickness: 1),
       ],
+    );
+  }
+
+  Widget _buildToggleButton(String label, bool turnOn) {
+    final selected = (_selected[label] == turnOn);
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selected[label] = turnOn;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 8,
+        ),
+        decoration: BoxDecoration(
+          color:
+              selected
+                  ? AppColors.primaryColor
+                  : AppColors.white,
+          border: Border.all(
+            color:
+                selected ? AppColors.white : Colors.black,
+            width: 1.5,
+          ),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          turnOn ? 'On' : 'Off',
+          style: AppTextStyle.bodyMedium.copyWith(
+            fontWeight: FontWeight.w600,
+            color:
+                selected
+                    ? AppColors.white
+                    : AppColors.primaryColor,
+          ),
+        ),
+      ),
     );
   }
 }
