@@ -1,5 +1,7 @@
 import 'package:clay_rigging_bridle/features/bottom_nav_bar/bottom_nav_bar.dart';
 import 'package:clay_rigging_bridle/utils/app_assets.dart';
+import 'package:clay_rigging_bridle/utils/app_labels.dart';
+import 'package:clay_rigging_bridle/utils/app_text_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -30,7 +32,20 @@ class _SplashScreenState extends State<SplashScreen> {
         width: width,
         child: Padding(
           padding: EdgeInsets.all(width * 0.1),
-          child: Image.asset(AppAssets.splash, fit: BoxFit.contain),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                AppAssets.splash,
+                fit: BoxFit.contain,
+              ),
+              SizedBox(height: height * 0.02),
+              Text(
+                AppLabels.appName,
+                style: AppTextStyle.headlineMedium,
+              ),
+            ],
+          ),
         ),
       ),
     );
