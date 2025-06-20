@@ -23,7 +23,6 @@ class _MeasurementPageState extends State<MeasurementPage> {
   double rightDrop = 1.47;
   double pointDist = 0.07;
   double apexHeight = 0.00;
-  double loadValue = 0.0;
 
   String beamValue = '';
   String leftLegValue = '';
@@ -33,7 +32,9 @@ class _MeasurementPageState extends State<MeasurementPage> {
   String pointDistanceValue = '';
   String apexHeightValue = '';
   String angleValue = '';
-  String loadDisplay = '';
+
+  // Helper to keep values non-negative
+  double _nn(double v) => v.clamp(0.0, double.infinity);
 
   @override
   void initState() {
@@ -43,6 +44,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
 
   @override
   Widget build(BuildContext context) {
+    // ensure UI always in sync
     _recalculate();
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
@@ -52,7 +54,24 @@ class _MeasurementPageState extends State<MeasurementPage> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                const SizedBox(height: 10),
+                Align(
+                  alignment: Alignment.topRight,
+                  child: IconButton(
+                    onPressed: () {
+                      showPreferencesDialog(
+                        context: context,
+                        title: "Measurements",
+                        body:
+                            'Drag beams or the weight to adjust values. Tap a field to enter numbers directly.',
+                      );
+                    },
+                    icon: Icon(
+                      Icons.info_outline,
+                      color: AppColors.primaryColor,
+                      size: 30,
+                    ),
+                  ),
+                ),
                 Text(
                   'Rigging Bridle Measurement',
                   style: AppTextStyle.titleMedium.copyWith(
@@ -60,13 +79,13 @@ class _MeasurementPageState extends State<MeasurementPage> {
                     color: AppColors.primaryColor,
                   ),
                 ),
-                const SizedBox(height: 10),
+
                 Text(
                   "Let’s start exploring with us in just\nfew steps away",
                   style: AppTextStyle.titleSmall,
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 20),
+
                 Center(
                   child: Container(
                     width: 360,
@@ -79,41 +98,40 @@ class _MeasurementPageState extends State<MeasurementPage> {
                           ),
                         ),
 
-                        // weight drag
+                        // weight drag: adjusts both legs & apex
                         Positioned(
                           top: 280,
                           left: 136,
                           child: GestureDetector(
-                            onVerticalDragUpdate: (
-                              details,
-                            ) {
-                              double delta =
-                                  -details.primaryDelta! /
-                                  50;
+                            onVerticalDragUpdate: (d) {
+                              final delta =
+                                  -d.primaryDelta! / 50;
                               setState(() {
-                                leftLeg = (leftLeg + delta)
-                                    .clamp(0.0, 99.99);
-                                rightLeg = (rightLeg +
-                                        delta)
-                                    .clamp(0.0, 99.99);
+                                leftLeg = _nn(
+                                  leftLeg + delta,
+                                );
+                                rightLeg = _nn(
+                                  rightLeg + delta,
+                                );
+                                apexHeight = _nn(
+                                  apexHeight + delta,
+                                );
                               });
                               _recalculate();
                             },
-                            onHorizontalDragUpdate: (
-                              details,
-                            ) {
-                              double delta =
-                                  details.primaryDelta! /
-                                  50;
+                            onHorizontalDragUpdate: (d) {
+                              final delta =
+                                  d.primaryDelta! / 50;
                               setState(() {
-                                leftLeg = (leftLeg + delta)
-                                    .clamp(0.0, 99.99);
-                                rightLeg = (rightLeg +
-                                        delta)
-                                    .clamp(0.0, 99.99);
-                                pointDist = (pointDist +
-                                        delta)
-                                    .clamp(0.0, 99.99);
+                                leftLeg = _nn(
+                                  leftLeg + delta,
+                                );
+                                rightLeg = _nn(
+                                  rightLeg + delta,
+                                );
+                                pointDist = _nn(
+                                  pointDist + delta,
+                                );
                               });
                               _recalculate();
                             },
@@ -125,39 +143,34 @@ class _MeasurementPageState extends State<MeasurementPage> {
                           ),
                         ),
 
-                        // left beam drag
+                        // left beam drag: BEAM distances
                         Positioned(
                           top: 60,
                           left: 0,
                           child: GestureDetector(
-                            onVerticalDragUpdate: (
-                              details,
-                            ) {
-                              double delta =
-                                  -details.primaryDelta! /
-                                  50;
+                            onVerticalDragUpdate: (d) {
+                              final delta =
+                                  -d.primaryDelta! / 50;
                               setState(() {
-                                leftDrop = (leftDrop +
-                                        delta)
-                                    .clamp(0.0, 99.99);
-                                leftLeg = (leftLeg + delta)
-                                    .clamp(0.0, 99.99);
+                                leftDrop = _nn(
+                                  leftDrop + delta,
+                                );
+                                leftLeg = _nn(
+                                  leftLeg + delta,
+                                );
                               });
                               _recalculate();
                             },
-                            onHorizontalDragUpdate: (
-                              details,
-                            ) {
-                              double delta =
-                                  details.primaryDelta! /
-                                  50;
+                            onHorizontalDragUpdate: (d) {
+                              final delta =
+                                  d.primaryDelta! / 50;
                               setState(() {
-                                rightLeg = (rightLeg +
-                                        delta)
-                                    .clamp(0.0, 99.99);
-                                beamDist = (beamDist +
-                                        delta)
-                                    .clamp(0.0, 99.99);
+                                beamDist = _nn(
+                                  beamDist + delta,
+                                );
+                                leftLeg = _nn(
+                                  leftLeg + delta,
+                                );
                               });
                               _recalculate();
                             },
@@ -174,34 +187,29 @@ class _MeasurementPageState extends State<MeasurementPage> {
                           top: 60,
                           right: 0,
                           child: GestureDetector(
-                            onVerticalDragUpdate: (
-                              details,
-                            ) {
-                              double delta =
-                                  -details.primaryDelta! /
-                                  50;
+                            onVerticalDragUpdate: (d) {
+                              final delta =
+                                  -d.primaryDelta! / 50;
                               setState(() {
-                                rightDrop = (rightDrop +
-                                        delta)
-                                    .clamp(0.0, 99.99);
-                                rightLeg = (rightLeg +
-                                        delta)
-                                    .clamp(0.0, 99.99);
+                                rightDrop = _nn(
+                                  rightDrop + delta,
+                                );
+                                rightLeg = _nn(
+                                  rightLeg + delta,
+                                );
                               });
                               _recalculate();
                             },
-                            onHorizontalDragUpdate: (
-                              details,
-                            ) {
-                              double delta =
-                                  details.primaryDelta! /
-                                  50;
+                            onHorizontalDragUpdate: (d) {
+                              final delta =
+                                  d.primaryDelta! / 50;
                               setState(() {
-                                leftLeg = (leftLeg + delta)
-                                    .clamp(0.0, 99.99);
-                                beamDist = (beamDist +
-                                        delta)
-                                    .clamp(0.0, 99.99);
+                                beamDist = _nn(
+                                  beamDist + delta,
+                                );
+                                rightLeg = _nn(
+                                  rightLeg + delta,
+                                );
                               });
                               _recalculate();
                             },
@@ -213,6 +221,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
                           ),
                         ),
 
+                        // Text inputs / pickers
                         _inputBox(
                           top: 72,
                           left: 145,
@@ -223,7 +232,8 @@ class _MeasurementPageState extends State<MeasurementPage> {
                                 title: 'Beam Distance',
                                 currentValue: beamDist,
                                 onConfirm:
-                                    (v) => beamDist = v,
+                                    (v) =>
+                                        beamDist = _nn(v),
                               ),
                         ),
                         _inputBox(
@@ -236,7 +246,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
                                 title: 'Left Leg',
                                 currentValue: leftLeg,
                                 onConfirm:
-                                    (v) => leftLeg = v,
+                                    (v) => leftLeg = _nn(v),
                               ),
                         ),
                         _inputBox(
@@ -249,33 +259,36 @@ class _MeasurementPageState extends State<MeasurementPage> {
                                 title: 'Right Leg',
                                 currentValue: rightLeg,
                                 onConfirm:
-                                    (v) => rightLeg = v,
+                                    (v) =>
+                                        rightLeg = _nn(v),
                               ),
                         ),
                         _inputBox(
                           top: 258,
                           left: 5,
                           display: leftBeamValue,
-                          title: 'Beam Height',
+                          title: 'Left Beam',
                           onTap:
                               () => _showPicker(
-                                title: 'Beam Height',
+                                title: 'Left Beam Height',
                                 currentValue: leftDrop,
                                 onConfirm:
-                                    (v) => leftDrop = v,
+                                    (v) =>
+                                        leftDrop = _nn(v),
                               ),
                         ),
                         _inputBox(
                           top: 258,
                           left: 283,
                           display: rightBeamValue,
-                          title: 'Beam Height',
+                          title: 'Right Beam',
                           onTap:
                               () => _showPicker(
-                                title: 'Beam Height',
+                                title: 'Right Beam Height',
                                 currentValue: rightDrop,
                                 onConfirm:
-                                    (v) => rightDrop = v,
+                                    (v) =>
+                                        rightDrop = _nn(v),
                               ),
                         ),
                         _inputBox(
@@ -288,7 +301,8 @@ class _MeasurementPageState extends State<MeasurementPage> {
                                 title: 'Point Distance',
                                 currentValue: pointDist,
                                 onConfirm:
-                                    (v) => pointDist = v,
+                                    (v) =>
+                                        pointDist = _nn(v),
                               ),
                         ),
                         _inputBox(
@@ -301,71 +315,19 @@ class _MeasurementPageState extends State<MeasurementPage> {
                                 title: 'Apex Height',
                                 currentValue: apexHeight,
                                 onConfirm:
-                                    (v) => apexHeight = v,
+                                    (v) =>
+                                        apexHeight = _nn(v),
                                 skipRecalc: true,
                               ),
                         ),
 
+                        // Angle output
                         _outputBox(
                           top: 152,
                           left: 145,
                           display: angleValue,
                         ),
-
-                        // Positioned(
-                        //   bottom: 10,
-                        //   right: 10,
-                        //   child: SizedBox(
-                        //     width: 80,
-                        //     height: 80,
-                        //     child: Stack(
-                        //       children: [
-                        //         CustomPaint(
-                        //           size: Size(80, 80),
-                        //           painter: SingleLegPainter(
-                        //             side:
-                        //                 BridleLegSide.left,
-                        //             beamDist: beamDist,
-                        //             legLength: leftLeg,
-                        //           ),
-                        //         ),
-                        //         CustomPaint(
-                        //           size: Size(80, 80),
-                        //           painter: SingleLegPainter(
-                        //             side:
-                        //                 BridleLegSide.right,
-                        //             beamDist: beamDist,
-                        //             legLength: rightLeg,
-                        //           ),
-                        //         ),
-                        //         CustomPaint(
-                        //           size: Size(80, 80),
-                        //           painter: ShacklePainter(),
-                        //         ),
-                        //       ],
-                        //     ),
-                        //   ),
-                        // ),
                       ],
-                    ),
-                  ),
-                ),
-
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: IconButton(
-                    onPressed: () {
-                      showPreferencesDialog(
-                        context: context,
-                        title: "Measurements",
-                        body:
-                            'Both beams and the shackle are touch sensitive and you can drag them in any direction to fine tune your measurements. Tap one of the text fields to enter your values directly.',
-                      );
-                    },
-                    icon: Icon(
-                      Icons.info_outline,
-                      color: AppColors.primaryColor,
-                      size: 30,
                     ),
                   ),
                 ),
@@ -378,41 +340,31 @@ class _MeasurementPageState extends State<MeasurementPage> {
   }
 
   void _recalculate() {
-    // 1) offsets from apex to the two beam anchors
     final half = beamDist / 2;
     final dxL = half + pointDist;
     final dxR = half - pointDist;
     final dyL = leftDrop - apexHeight;
     final dyR = rightDrop - apexHeight;
-
-    // 3) compute included angle at apex
     final dot = dxL * dxR + dyL * dyR;
-    final cosA = (dot / (leftDrop * rightDrop)).clamp(
-      -1.0,
-      1.0,
-    );
-    final angleR = math.acos(cosA);
-    final angleD = angleR * 180 / math.pi;
-
-    // 4) load formula
-    final load = ((leftDrop + rightDrop + pointDist) * 10)
-        .clamp(0.0, 9999.0);
+    final denom = leftDrop * rightDrop;
+    String ang;
+    if (denom <= 0) {
+      ang = '–';
+    } else {
+      final cosA = (dot / denom).clamp(-1.0, 1.0);
+      final rad = math.acos(cosA);
+      ang = '${(rad * 180 / math.pi).toStringAsFixed(0)}°';
+    }
 
     setState(() {
-      leftLegValue = leftDrop.toStringAsFixed(2);
-      rightLegValue = rightDrop.toStringAsFixed(2);
-      angleValue = ('${angleD.toStringAsFixed(0)}°');
-      loadValue = load;
-      loadDisplay = load.toStringAsFixed(1);
-
       beamValue = beamDist.toStringAsFixed(2);
+      leftLegValue = leftLeg.toStringAsFixed(2);
+      rightLegValue = rightLeg.toStringAsFixed(2);
       leftBeamValue = leftDrop.toStringAsFixed(2);
       rightBeamValue = rightDrop.toStringAsFixed(2);
       pointDistanceValue = pointDist.toStringAsFixed(2);
-      apexHeightValue = apexHeight
-          .clamp(0.0, double.infinity)
-          .toStringAsFixed(2); // “0.04”
-      angleValue = '${angleD.toStringAsFixed(0)}°';
+      apexHeightValue = apexHeight.toStringAsFixed(2);
+      angleValue = ang;
     });
   }
 
@@ -426,14 +378,9 @@ class _MeasurementPageState extends State<MeasurementPage> {
     final tenths = List<int>.generate(10, (i) => i);
     final hunds = List<int>.generate(10, (i) => i);
 
-    int i0 = ints
-        .indexWhere((v) => v == currentValue.floor())
-        .clamp(0, 99);
-    int i1 = ((currentValue * 10).floor() % 10).clamp(0, 9);
-    int i2 = ((currentValue * 100).floor() % 10).clamp(
-      0,
-      9,
-    );
+    int i0 = currentValue.floor().clamp(0, 99);
+    int i1 = ((currentValue * 10).floor() % 10);
+    int i2 = ((currentValue * 100).floor() % 10);
 
     await showCupertinoModalPopup(
       context: context,
@@ -467,10 +414,11 @@ class _MeasurementPageState extends State<MeasurementPage> {
                         ),
                         child: const Text('Done'),
                         onPressed: () {
-                          final val =
+                          final raw =
                               ints[i0] +
                               tenths[i1] / 10 +
                               hunds[i2] / 100;
+                          final val = _nn(raw);
                           onConfirm(val);
                           Navigator.of(ctx).pop();
                           if (!skipRecalc) _recalculate();
@@ -490,7 +438,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
                               ),
                           itemExtent: 32,
                           onSelectedItemChanged:
-                              (x) => i0 = x.clamp(0, 99),
+                              (x) => i0 = x,
                           children:
                               ints
                                   .map(
@@ -516,7 +464,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
                               ),
                           itemExtent: 32,
                           onSelectedItemChanged:
-                              (x) => i1 = x.clamp(0, 9),
+                              (x) => i1 = x,
                           children:
                               tenths
                                   .map(
@@ -535,7 +483,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
                               ),
                           itemExtent: 32,
                           onSelectedItemChanged:
-                              (x) => i2 = x.clamp(0, 9),
+                              (x) => i2 = x,
                           children:
                               hunds
                                   .map(
@@ -588,7 +536,6 @@ class _MeasurementPageState extends State<MeasurementPage> {
     child: Container(
       width: 72,
       height: 40,
-
       color: Colors.transparent,
       alignment: Alignment.center,
       child: Text(display, style: AppTextStyle.bodySmall),
@@ -659,7 +606,6 @@ class SingleLegPainter extends CustomPainter {
 
     final topY = centerY - legLength * scale;
     final shackleY = centerY;
-
     final x =
         side == BridleLegSide.left
             ? centerX - halfBeam * scale
@@ -675,9 +621,8 @@ class SingleLegPainter extends CustomPainter {
   @override
   bool shouldRepaint(
     covariant SingleLegPainter oldDelegate,
-  ) {
-    return oldDelegate.legLength != legLength ||
-        oldDelegate.beamDist != beamDist ||
-        oldDelegate.side != side;
-  }
+  ) =>
+      oldDelegate.legLength != legLength ||
+      oldDelegate.beamDist != beamDist ||
+      oldDelegate.side != side;
 }
