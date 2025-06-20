@@ -16,12 +16,12 @@ class MeasurementPage extends StatefulWidget {
 }
 
 class _MeasurementPageState extends State<MeasurementPage> {
-  double beamDist = 1.11;
-  double leftLeg = 1.11;
-  double rightLeg = 0.00;
-  double leftDrop = 1.11;
-  double rightDrop = 1.11;
-  double pointDist = 1.11;
+  double beamDist = 2.68;
+  double leftLeg = 1.90;
+  double rightLeg = 2.98;
+  double leftDrop = 1.94;
+  double rightDrop = 1.47;
+  double pointDist = 0.07;
   double apexHeight = 0.00;
   double loadValue = 0.0;
 
@@ -43,6 +43,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
 
   @override
   Widget build(BuildContext context) {
+    _recalculate();
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
@@ -78,9 +79,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
                           ),
                         ),
 
-                        /* -------------------------------------------------------------------------- */
-                        /*                                   weight                                   */
-                        /* -------------------------------------------------------------------------- */
+                        // weight drag
                         Positioned(
                           top: 280,
                           left: 136,
@@ -121,17 +120,12 @@ class _MeasurementPageState extends State<MeasurementPage> {
                             child: Container(
                               width: 90,
                               height: 100,
-                              color: Colors.green
-                                  .withOpacity(0.3),
-                              alignment: Alignment.center,
+                              color: Colors.transparent,
                             ),
                           ),
                         ),
 
-                        ///
-                        /// left beam change (drag to change leftDrop & leftLeg vertically,
-                        /// rightLeg & beamDist horizontally)
-                        ///
+                        // left beam drag
                         Positioned(
                           top: 60,
                           left: 0,
@@ -170,17 +164,12 @@ class _MeasurementPageState extends State<MeasurementPage> {
                             child: Container(
                               width: 90,
                               height: 60,
-                              color: Colors.green
-                                  .withOpacity(0.3),
-                              alignment: Alignment.center,
+                              color: Colors.transparent,
                             ),
                           ),
                         ),
 
-                        ///
-                        /// right beam change (drag to change rightDrop & rightLeg vertically,
-                        /// leftLeg & beamDist horizontally)
-                        ///
+                        // right beam drag
                         Positioned(
                           top: 60,
                           right: 0,
@@ -219,9 +208,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
                             child: Container(
                               width: 90,
                               height: 60,
-                              color: Colors.green
-                                  .withOpacity(0.3),
-                              alignment: Alignment.center,
+                              color: Colors.transparent,
                             ),
                           ),
                         ),
@@ -325,33 +312,40 @@ class _MeasurementPageState extends State<MeasurementPage> {
                           display: angleValue,
                         ),
 
-                        Positioned(
-                          bottom: 10,
-                          right: 10,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              CustomPaint(
-                                size: const Size(80, 80),
-                                painter: BridleLoadPainter(
-                                  beamDist: beamDist,
-                                  leftLeg: leftLeg,
-                                  rightLeg: rightLeg,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                loadDisplay,
-                                style: AppTextStyle
-                                    .bodySmall
-                                    .copyWith(
-                                      fontWeight:
-                                          FontWeight.bold,
-                                    ),
-                              ),
-                            ],
-                          ),
-                        ),
+                        // Positioned(
+                        //   bottom: 10,
+                        //   right: 10,
+                        //   child: SizedBox(
+                        //     width: 80,
+                        //     height: 80,
+                        //     child: Stack(
+                        //       children: [
+                        //         CustomPaint(
+                        //           size: Size(80, 80),
+                        //           painter: SingleLegPainter(
+                        //             side:
+                        //                 BridleLegSide.left,
+                        //             beamDist: beamDist,
+                        //             legLength: leftLeg,
+                        //           ),
+                        //         ),
+                        //         CustomPaint(
+                        //           size: Size(80, 80),
+                        //           painter: SingleLegPainter(
+                        //             side:
+                        //                 BridleLegSide.right,
+                        //             beamDist: beamDist,
+                        //             legLength: rightLeg,
+                        //           ),
+                        //         ),
+                        //         CustomPaint(
+                        //           size: Size(80, 80),
+                        //           painter: ShacklePainter(),
+                        //         ),
+                        //       ],
+                        //     ),
+                        //   ),
+                        // ),
                       ],
                     ),
                   ),
@@ -384,44 +378,41 @@ class _MeasurementPageState extends State<MeasurementPage> {
   }
 
   void _recalculate() {
-    final a = leftLeg;
-    final b = rightLeg;
-    final c = beamDist;
+    // 1) offsets from apex to the two beam anchors
+    final half = beamDist / 2;
+    final dxL = half + pointDist;
+    final dxR = half - pointDist;
+    final dyL = leftDrop - apexHeight;
+    final dyR = rightDrop - apexHeight;
 
-    // 1. Angle at apex (law of cosines)
-    final cosA =
-        ((a * a) + (b * b) - (c * c)) / (2 * a * b);
-    final angleRad = math.acos(cosA.clamp(-1.0, 1.0));
-    final angleDeg = angleRad * 180 / math.pi;
-
-    // 2. Geometry to find apex Y using circle intersection
-    final xL = -c / 2;
-    final xR = c / 2;
-    final d = (xR - xL).abs();
-
-    final a2 = (a * a - b * b + d * d) / (2 * d);
-    final h = math.sqrt(
-      (a * a - a2 * a2).clamp(0.0, double.infinity),
+    // 3) compute included angle at apex
+    final dot = dxL * dxR + dyL * dyR;
+    final cosA = (dot / (leftDrop * rightDrop)).clamp(
+      -1.0,
+      1.0,
     );
+    final angleR = math.acos(cosA);
+    final angleD = angleR * 180 / math.pi;
 
-    final averageDrop = (leftDrop + rightDrop) / 2;
-    apexHeight = (averageDrop - h).clamp(
-      0.0,
-      double.infinity,
-    );
+    // 4) load formula
+    final load = ((leftDrop + rightDrop + pointDist) * 10)
+        .clamp(0.0, 9999.0);
 
     setState(() {
+      leftLegValue = leftDrop.toStringAsFixed(2);
+      rightLegValue = rightDrop.toStringAsFixed(2);
+      angleValue = ('${angleD.toStringAsFixed(0)}°');
+      loadValue = load;
+      loadDisplay = load.toStringAsFixed(1);
+
       beamValue = beamDist.toStringAsFixed(2);
-      leftLegValue = leftLeg.toStringAsFixed(2);
-      rightLegValue = rightLeg.toStringAsFixed(2);
       leftBeamValue = leftDrop.toStringAsFixed(2);
       rightBeamValue = rightDrop.toStringAsFixed(2);
       pointDistanceValue = pointDist.toStringAsFixed(2);
-      apexHeightValue = apexHeight.toStringAsFixed(2);
-      angleValue = '${angleDeg.toStringAsFixed(0)}°';
-      loadValue = ((leftLeg + rightLeg + pointDist) * 10)
-          .clamp(0.0, 9999.0);
-      loadDisplay = loadValue.toStringAsFixed(1);
+      apexHeightValue = apexHeight
+          .clamp(0.0, double.infinity)
+          .toStringAsFixed(2); // “0.04”
+      angleValue = '${angleD.toStringAsFixed(0)}°';
     });
   }
 
@@ -530,7 +521,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
                               tenths
                                   .map(
                                     (v) => Center(
-                                      child: Text('.${v}'),
+                                      child: Text('.$v'),
                                     ),
                                   )
                                   .toList(),
@@ -580,7 +571,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
       child: Container(
         width: 72,
         height: 40,
-        color: Colors.red.withOpacity(0.3),
+        color: Colors.transparent,
         alignment: Alignment.center,
         child: Text(display, style: AppTextStyle.bodySmall),
       ),
@@ -597,32 +588,18 @@ class _MeasurementPageState extends State<MeasurementPage> {
     child: Container(
       width: 72,
       height: 40,
-      color: Colors.green.withOpacity(0.3),
+
+      color: Colors.transparent,
       alignment: Alignment.center,
       child: Text(display, style: AppTextStyle.bodySmall),
     ),
   );
 }
 
-class BridleLoadPainter extends CustomPainter {
-  final double beamDist;
-  final double leftLeg;
-  final double rightLeg;
-
-  BridleLoadPainter({
-    required this.beamDist,
-    required this.leftLeg,
-    required this.rightLeg,
-  });
-
+class ShacklePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final redPaint =
-        Paint()
-          ..color = Colors.red
-          ..strokeWidth = 3
-          ..style = PaintingStyle.stroke;
-    final shacklePaint =
+    final paint =
         Paint()
           ..color = Colors.black
           ..strokeWidth = 3
@@ -630,51 +607,77 @@ class BridleLoadPainter extends CustomPainter {
 
     final centerX = size.width / 2;
     final centerY = size.height / 2;
-    final scale = 80.0 / ((leftLeg + rightLeg) / 2 + 1);
-    final halfBeam = beamDist / 2;
-
-    final leftX = centerX - halfBeam * scale;
-    final rightX = centerX + halfBeam * scale;
-    final avgLeg = (leftLeg + rightLeg) / 2;
-    final topY = centerY - avgLeg * scale;
-    final shackleY = centerY;
-
-    canvas.drawLine(
-      Offset(leftX, topY),
-      Offset(centerX, shackleY),
-      redPaint,
-    );
-    canvas.drawLine(
-      Offset(rightX, topY),
-      Offset(centerX, shackleY),
-      redPaint,
-    );
 
     canvas.drawArc(
       Rect.fromCenter(
-        center: Offset(centerX, shackleY + 5),
+        center: Offset(centerX, centerY + 5),
         width: 20,
         height: 20,
       ),
       math.pi,
       math.pi,
       false,
-      shacklePaint,
+      paint,
     );
+    canvas.drawLine(
+      Offset(centerX, centerY + 15),
+      Offset(centerX, size.height),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) =>
+      false;
+}
+
+enum BridleLegSide { left, right }
+
+class SingleLegPainter extends CustomPainter {
+  final BridleLegSide side;
+  final double beamDist;
+  final double legLength;
+
+  SingleLegPainter({
+    required this.side,
+    required this.beamDist,
+    required this.legLength,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint =
+        Paint()
+          ..color = Colors.red
+          ..strokeWidth = 3
+          ..style = PaintingStyle.stroke;
+
+    final centerX = size.width / 2;
+    final centerY = size.height / 2;
+    final scale = 80.0 / (legLength + 1);
+    final halfBeam = beamDist / 2;
+
+    final topY = centerY - legLength * scale;
+    final shackleY = centerY;
+
+    final x =
+        side == BridleLegSide.left
+            ? centerX - halfBeam * scale
+            : centerX + halfBeam * scale;
 
     canvas.drawLine(
-      Offset(centerX, shackleY + 15),
-      Offset(centerX, size.height),
-      shacklePaint,
+      Offset(x, topY),
+      Offset(centerX, shackleY),
+      paint,
     );
   }
 
   @override
   bool shouldRepaint(
-    covariant BridleLoadPainter oldDelegate,
+    covariant SingleLegPainter oldDelegate,
   ) {
-    return beamDist != oldDelegate.beamDist ||
-        leftLeg != oldDelegate.leftLeg ||
-        rightLeg != oldDelegate.rightLeg;
+    return oldDelegate.legLength != legLength ||
+        oldDelegate.beamDist != beamDist ||
+        oldDelegate.side != side;
   }
 }
