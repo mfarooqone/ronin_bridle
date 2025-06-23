@@ -7,6 +7,15 @@ import 'package:clay_rigging_bridle/utils/app_text_styles.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+///
+///
+/// lft right right legs will be
+/// it should be only
+/// if it is in Imp then it will be in pound
+/// /// if it is in metric then other page and otherwise other page
+/// ti souult 20ft to  200 ft
+///
+
 class MeasurementPage extends StatefulWidget {
   const MeasurementPage({Key? key}) : super(key: key);
 
