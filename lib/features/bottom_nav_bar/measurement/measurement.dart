@@ -16,13 +16,20 @@ class MeasurementPage extends StatefulWidget {
 }
 
 class _MeasurementPageState extends State<MeasurementPage> {
-  double beamDist = 2.68;
-  double leftLeg = 1.90;
-  double rightLeg = 2.98;
-  double leftDrop = 1.94;
-  double rightDrop = 1.47;
-  double pointDist = 0.07;
+  double beamDist = 0.00;
+  double leftLeg = 0.00;
+  double rightLeg = 0.00;
+  double leftDrop = 0.00;
+  double rightDrop = 0.00;
+  double pointDist = 0.00;
   double apexHeight = 0.00;
+  // double beamDist = 2.68;
+  // double leftLeg = 1.90;
+  // double rightLeg = 2.98;
+  // double leftDrop = 1.94;
+  // double rightDrop = 1.47;
+  // double pointDist = 0.07;
+  // double apexHeight = 0.00;
 
   String beamValue = '';
   String leftLegValue = '';
