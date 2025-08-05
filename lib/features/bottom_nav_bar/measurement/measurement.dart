@@ -438,124 +438,147 @@ class _MeasurementPageState extends State<MeasurementPage> {
       builder:
           (ctx) => Container(
             height: 300,
-            color: Colors.white,
-            child: Column(
-              children: [
-                SizedBox(
-                  height: 44,
-                  child: Row(
-                    mainAxisAlignment:
-                        MainAxisAlignment.spaceBetween,
-                    children: [
-                      CupertinoButton(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                        ),
-                        child: const Text('Cancel'),
-                        onPressed:
-                            () => Navigator.of(ctx).pop(),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+            ),
+            child: Scaffold(
+              backgroundColor: Colors.transparent,
+              body: Column(
+                children: [
+                  // Handle bar
+                  Container(
+                    margin: const EdgeInsets.only(top: 8),
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(
+                        2,
                       ),
-                      Text(
-                        title,
-                        style: AppTextStyle.titleSmall,
-                      ),
-                      CupertinoButton(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                        ),
-                        child: const Text('Done'),
-                        onPressed: () {
-                          final raw =
-                              ints[i0] +
-                              tenths[i1] / 10 +
-                              hunds[i2] / 100;
-                          final displayVal = _nn(raw);
-                          // Convert back to meters for storage
-                          final val = _measurementService
-                              .convertDistanceFromImperial(
-                                displayVal,
-                              );
-                          onConfirm(val);
-                          Navigator.of(ctx).pop();
-                          if (!skipRecalc) _recalculate();
-                        },
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: CupertinoPicker(
-                          scrollController:
-                              FixedExtentScrollController(
-                                initialItem: i0,
+                  SizedBox(
+                    height: 44,
+                    child: Row(
+                      mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
+                      children: [
+                        CupertinoButton(
+                          padding:
+                              const EdgeInsets.symmetric(
+                                horizontal: 16,
                               ),
-                          itemExtent: 32,
-                          onSelectedItemChanged:
-                              (x) => i0 = x,
-                          children:
-                              ints
-                                  .map(
-                                    (v) => Center(
-                                      child: Text(
-                                        v
-                                            .toString()
-                                            .padLeft(
-                                              3,
-                                              '0',
-                                            ),
-                                      ),
-                                    ),
-                                  )
-                                  .toList(),
+                          child: const Text('Cancel'),
+                          onPressed:
+                              () => Navigator.of(ctx).pop(),
                         ),
-                      ),
-                      Expanded(
-                        child: CupertinoPicker(
-                          scrollController:
-                              FixedExtentScrollController(
-                                initialItem: i1,
+                        Text(
+                          title,
+                          style: AppTextStyle.titleSmall,
+                        ),
+                        CupertinoButton(
+                          padding:
+                              const EdgeInsets.symmetric(
+                                horizontal: 16,
                               ),
-                          itemExtent: 32,
-                          onSelectedItemChanged:
-                              (x) => i1 = x,
-                          children:
-                              tenths
-                                  .map(
-                                    (v) => Center(
-                                      child: Text('.$v'),
-                                    ),
-                                  )
-                                  .toList(),
+                          child: const Text('Done'),
+                          onPressed: () {
+                            final raw =
+                                ints[i0] +
+                                tenths[i1] / 10 +
+                                hunds[i2] / 100;
+                            final displayVal = _nn(raw);
+                            // Convert back to meters for storage
+                            final val = _measurementService
+                                .convertDistanceFromImperial(
+                                  displayVal,
+                                );
+                            onConfirm(val);
+                            Navigator.of(ctx).pop();
+                            if (!skipRecalc) _recalculate();
+                          },
                         ),
-                      ),
-                      Expanded(
-                        child: CupertinoPicker(
-                          scrollController:
-                              FixedExtentScrollController(
-                                initialItem: i2,
-                              ),
-                          itemExtent: 32,
-                          onSelectedItemChanged:
-                              (x) => i2 = x,
-                          children:
-                              hunds
-                                  .map(
-                                    (v) => Center(
-                                      child: Text(
-                                        v.toString(),
-                                      ),
-                                    ),
-                                  )
-                                  .toList(),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: CupertinoPicker(
+                            scrollController:
+                                FixedExtentScrollController(
+                                  initialItem: i0,
+                                ),
+                            itemExtent: 32,
+                            onSelectedItemChanged:
+                                (x) => i0 = x,
+                            children:
+                                ints
+                                    .map(
+                                      (v) => Center(
+                                        child: Text(
+                                          v
+                                              .toString()
+                                              .padLeft(
+                                                3,
+                                                '0',
+                                              ),
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                          ),
+                        ),
+                        Expanded(
+                          child: CupertinoPicker(
+                            scrollController:
+                                FixedExtentScrollController(
+                                  initialItem: i1,
+                                ),
+                            itemExtent: 32,
+                            onSelectedItemChanged:
+                                (x) => i1 = x,
+                            children:
+                                tenths
+                                    .map(
+                                      (v) => Center(
+                                        child: Text('.$v'),
+                                      ),
+                                    )
+                                    .toList(),
+                          ),
+                        ),
+                        Expanded(
+                          child: CupertinoPicker(
+                            scrollController:
+                                FixedExtentScrollController(
+                                  initialItem: i2,
+                                ),
+                            itemExtent: 32,
+                            onSelectedItemChanged:
+                                (x) => i2 = x,
+                            children:
+                                hunds
+                                    .map(
+                                      (v) => Center(
+                                        child: Text(
+                                          v.toString(),
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
     );
