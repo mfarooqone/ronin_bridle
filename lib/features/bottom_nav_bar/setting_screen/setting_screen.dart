@@ -1,6 +1,7 @@
 import 'package:clay_rigging_bridle/utils/app_colors.dart';
 import 'package:clay_rigging_bridle/utils/app_labels.dart';
 import 'package:clay_rigging_bridle/utils/app_text_styles.dart';
+import 'package:clay_rigging_bridle/features/common/measurement_service.dart';
 import 'package:clay_rigging_bridle/widgets/app_logo.dart';
 import 'package:clay_rigging_bridle/widgets/primary_button.dart';
 import 'package:flutter/cupertino.dart';
@@ -18,7 +19,9 @@ class SettingScreen extends StatefulWidget {
 }
 
 class _SettingScreenState extends State<SettingScreen> {
-  String _selectedMeasurement = 'Metric';
+  final MeasurementService _measurementService = Get.put(
+    MeasurementService(),
+  );
   String _selectedInput = 'Numeric';
 
   @override
@@ -86,19 +89,23 @@ class _SettingScreenState extends State<SettingScreen> {
               SizedBox(
                 width: segmentWidth,
                 height: segmentHeight,
-                child: CupertinoSegmentedControl<String>(
-                  children: measurementOptions,
-                  groupValue: _selectedMeasurement,
-                  borderColor: AppColors.primaryColor,
-                  selectedColor: AppColors.primaryColor,
-                  unselectedColor: AppColors.white,
-                  pressedColor: AppColors.primaryColor
-                      .withOpacity(0.2),
-                  onValueChanged: (value) {
-                    setState(() {
-                      _selectedMeasurement = value;
-                    });
-                  },
+                child: Obx(
+                  () => CupertinoSegmentedControl<String>(
+                    children: measurementOptions,
+                    groupValue:
+                        _measurementService
+                            .selectedUnit
+                            .value,
+                    borderColor: AppColors.primaryColor,
+                    selectedColor: AppColors.primaryColor,
+                    unselectedColor: AppColors.white,
+                    pressedColor: AppColors.primaryColor
+                        .withOpacity(0.2),
+                    onValueChanged: (value) {
+                      _measurementService
+                          .setMeasurementUnit(value);
+                    },
+                  ),
                 ),
               ),
 
