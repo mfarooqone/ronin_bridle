@@ -522,12 +522,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
                                     .map(
                                       (v) => Center(
                                         child: Text(
-                                          v
-                                              .toString()
-                                              .padLeft(
-                                                3,
-                                                '0',
-                                              ),
+                                          v.toString(),
                                         ),
                                       ),
                                     )
