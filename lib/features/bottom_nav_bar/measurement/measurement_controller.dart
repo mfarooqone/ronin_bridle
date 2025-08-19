@@ -9,12 +9,12 @@ class MeasurementController extends GetxController {
       Get.find<PreferencesService>();
 
   // Observable measurement values
-  final RxDouble beamDist = 2.68.obs;
-  final RxDouble leftLeg = 1.90.obs;
-  final RxDouble rightLeg = 2.98.obs;
-  final RxDouble leftDrop = 1.94.obs;
-  final RxDouble rightDrop = 1.47.obs;
-  final RxDouble pointDist = 0.07.obs;
+  final RxDouble beamDist = 0.00.obs;
+  final RxDouble leftLeg = 0.00.obs;
+  final RxDouble rightLeg = 0.00.obs;
+  final RxDouble leftDrop = 0.00.obs;
+  final RxDouble rightDrop = 0.00.obs;
+  final RxDouble pointDist = 0.00.obs;
   final RxDouble apexHeight = 0.00.obs;
 
   // Observable display values

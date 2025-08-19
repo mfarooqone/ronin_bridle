@@ -397,20 +397,15 @@ class _MeasurementPageState extends State<MeasurementPage> {
     required double currentValue,
     required ValueChanged<double> onConfirm,
   }) async {
-    // Check the input type setting
     final inputType = _controller.getCurrentInputType();
 
     if (inputType == 'Numeric') {
-      // Show numeric keyboard input
       await _showNumericInput(
         title: title,
         currentValue: currentValue,
-        onConfirm: (value) {
-          onConfirm(value);
-        },
+        onConfirm: onConfirm,
       );
     } else {
-      // Show CupertinoPicker for Dials input
       await _showCupertinoPicker(
         title: title,
         currentValue: currentValue,
@@ -601,18 +596,15 @@ class _MeasurementPageState extends State<MeasurementPage> {
                           ),
                           onChanged: (value) {
                             if (value.isNotEmpty) {
-                              // Allow numbers, one decimal point, and up to 2 decimal places
                               final regex = RegExp(
                                 r'^\d*\.?\d{0,2}$',
                               );
                               if (!regex.hasMatch(value)) {
-                                // Remove invalid characters but keep valid decimal input
                                 final cleanValue = value
                                     .replaceAll(
                                       RegExp(r'[^\d.]'),
                                       '',
                                     );
-                                // Ensure only one decimal point
                                 final parts = cleanValue
                                     .split('.');
                                 if (parts.length > 2) {
