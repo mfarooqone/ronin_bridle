@@ -4,6 +4,7 @@ class MeasurementService extends GetxController {
   static MeasurementService get to => Get.find();
 
   final RxString selectedUnit = 'Metric'.obs;
+  final RxString selectedInputType = 'Numeric'.obs;
 
   static const double feetToMeters = 0.3048;
   static const double metersToFeet = 3.28084;
@@ -42,5 +43,13 @@ class MeasurementService extends GetxController {
 
   String getMeasurementUnit() {
     return selectedUnit.value;
+  }
+
+  void setInputType(String inputType) {
+    selectedInputType.value = inputType;
+  }
+
+  String getInputType() {
+    return selectedInputType.value;
   }
 }
