@@ -18,6 +18,7 @@ class _AvailableHardwareScreenState
   final Map<String, List<String>> _sections = {
     'Imperial Steels': [
       "1' Steel",
+      "1'6\" Steel",
       "2' Steel",
       "2'6\" Steel",
       "3' Steel",
@@ -27,7 +28,6 @@ class _AvailableHardwareScreenState
       "15' Steel",
       "20' Steel",
       "30' Steel",
-      "40' Steel",
       "50' Steel",
       "60' Steel",
       "100' Steel",
@@ -59,11 +59,6 @@ class _AvailableHardwareScreenState
       "5' Basket",
       "10' Basket",
       "15' Basket",
-      "20' Basket",
-      "30' Basket",
-      "50' Basket",
-      "60' Basket",
-      "100' Basket",
       "2' – 5' Split Basket",
       "5' – 10' Split Basket",
       "10' – 20' Split Basket",
