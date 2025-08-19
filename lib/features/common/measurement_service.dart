@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MeasurementService extends GetxController {
   static MeasurementService get to => Get.find();
@@ -12,6 +13,29 @@ class MeasurementService extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _loadPreferences();
+  }
+
+  // Save all preferences
+  Future<void> _savePreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      'selectedUnit',
+      selectedUnit.value,
+    );
+    await prefs.setString(
+      'selectedInputType',
+      selectedInputType.value,
+    );
+  }
+
+  // Load all preferences
+  Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    selectedUnit.value =
+        prefs.getString('selectedUnit') ?? 'Metric';
+    selectedInputType.value =
+        prefs.getString('selectedInputType') ?? 'Numeric';
   }
 
   double convertDistance(double valueInMeters) {
@@ -39,6 +63,7 @@ class MeasurementService extends GetxController {
 
   void setMeasurementUnit(String unit) {
     selectedUnit.value = unit;
+    _savePreferences(); // Save automatically when unit changes
   }
 
   String getMeasurementUnit() {
@@ -47,6 +72,7 @@ class MeasurementService extends GetxController {
 
   void setInputType(String inputType) {
     selectedInputType.value = inputType;
+    _savePreferences(); // Save automatically when input type changes
   }
 
   String getInputType() {

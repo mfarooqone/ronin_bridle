@@ -6,6 +6,7 @@ import 'package:clay_rigging_bridle/utils/app_text_styles.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 ///
 ///
@@ -55,6 +56,32 @@ class _MeasurementPageState extends State<MeasurementPage> {
     return value.clamp(0.0, double.infinity);
   }
 
+  // Save measurement values to preferences
+  Future<void> _saveMeasurementValues() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('beamDist', beamDist);
+    await prefs.setDouble('leftLeg', leftLeg);
+    await prefs.setDouble('rightLeg', rightLeg);
+    await prefs.setDouble('leftDrop', leftDrop);
+    await prefs.setDouble('rightDrop', rightDrop);
+    await prefs.setDouble('pointDist', pointDist);
+    await prefs.setDouble('apexHeight', apexHeight);
+  }
+
+  // Load measurement values from preferences
+  Future<void> _loadMeasurementValues() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      beamDist = prefs.getDouble('beamDist') ?? 2.68;
+      leftLeg = prefs.getDouble('leftLeg') ?? 1.90;
+      rightLeg = prefs.getDouble('rightLeg') ?? 2.98;
+      leftDrop = prefs.getDouble('leftDrop') ?? 1.94;
+      rightDrop = prefs.getDouble('rightDrop') ?? 1.47;
+      pointDist = prefs.getDouble('pointDist') ?? 0.07;
+      apexHeight = prefs.getDouble('apexHeight') ?? 0.00;
+    });
+  }
+
   // Check and convert values when unit changes
   void _checkAndConvertValues(String currentUnit) {
     if (_lastUnit != null && _lastUnit != currentUnit) {
@@ -100,6 +127,8 @@ class _MeasurementPageState extends State<MeasurementPage> {
           apexHeight = apexHeight * 0.3048;
         }
       });
+      // Save the converted values
+      _saveMeasurementValues();
     });
 
     print(
@@ -112,6 +141,8 @@ class _MeasurementPageState extends State<MeasurementPage> {
     super.initState();
     // Initialize the last unit to current unit
     _lastUnit = _measurementService.getMeasurementUnit();
+    // Load saved measurement values
+    _loadMeasurementValues();
   }
 
   @override
@@ -194,35 +225,6 @@ class _MeasurementPageState extends State<MeasurementPage> {
                           ),
                     ),
 
-                    // Input method indicator
-                    Obx(
-                      () => Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryColor
-                              .withOpacity(0.1),
-                          borderRadius:
-                              BorderRadius.circular(20),
-                          border: Border.all(
-                            color: AppColors.primaryColor
-                                .withOpacity(0.3),
-                          ),
-                        ),
-                        child: Text(
-                          'Input: ${_measurementService.selectedInputType.value}',
-                          style: AppTextStyle.bodySmall
-                              .copyWith(
-                                color:
-                                    AppColors.primaryColor,
-                                fontWeight: FontWeight.w500,
-                              ),
-                        ),
-                      ),
-                    ),
-
                     Text(
                       "Let’s start exploring with us in just\nfew steps away",
                       style: AppTextStyle.titleSmall,
@@ -264,6 +266,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
                                               delta,
                                         );
                                   });
+                                  _saveMeasurementValues();
                                 },
                                 onHorizontalDragUpdate: (
                                   d,
@@ -284,6 +287,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
                                           pointDist + delta,
                                         );
                                   });
+                                  _saveMeasurementValues();
                                 },
                                 child: Container(
                                   width: 90,
@@ -311,6 +315,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
                                           leftLeg + delta,
                                         );
                                   });
+                                  _saveMeasurementValues();
                                 },
                                 onHorizontalDragUpdate: (
                                   d,
@@ -327,6 +332,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
                                           leftLeg + delta,
                                         );
                                   });
+                                  _saveMeasurementValues();
                                 },
                                 child: Container(
                                   width: 90,
@@ -392,6 +398,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
                                     onConfirm: (v) {
                                       beamDist = v;
                                       setState(() {});
+                                      _saveMeasurementValues();
                                     },
                                   ),
                             ),
@@ -407,6 +414,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
                                     onConfirm: (v) {
                                       leftLeg = v;
                                       setState(() {});
+                                      _saveMeasurementValues();
                                     },
                                   ),
                             ),
@@ -422,6 +430,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
                                     onConfirm: (v) {
                                       rightLeg = v;
                                       setState(() {});
+                                      _saveMeasurementValues();
                                     },
                                   ),
                             ),
@@ -438,6 +447,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
                                     onConfirm: (v) {
                                       leftDrop = v;
                                       setState(() {});
+                                      _saveMeasurementValues();
                                     },
                                   ),
                             ),
@@ -454,6 +464,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
                                     onConfirm: (v) {
                                       rightDrop = v;
                                       setState(() {});
+                                      _saveMeasurementValues();
                                     },
                                   ),
                             ),
@@ -469,6 +480,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
                                     onConfirm: (v) {
                                       pointDist = v;
                                       setState(() {});
+                                      _saveMeasurementValues();
                                     },
                                   ),
                             ),
@@ -485,6 +497,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
                                     onConfirm: (v) {
                                       apexHeight = v;
                                       setState(() {});
+                                      _saveMeasurementValues();
                                     },
                                   ),
                             ),
@@ -526,6 +539,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
         onConfirm: (value) {
           onConfirm(value);
           setState(() {});
+          _saveMeasurementValues();
         },
       );
     } else {
@@ -838,6 +852,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
                               hunds[i2] / 100;
                           onConfirm(raw);
                           Navigator.of(ctx).pop();
+                          _saveMeasurementValues();
                         },
                       ),
                     ],
