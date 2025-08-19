@@ -47,6 +47,11 @@ class _MeasurementPageState extends State<MeasurementPage> {
   String apexHeightValue = '';
   String angleValue = '';
 
+  // Helper function to ensure values are non-negative
+  double _clampNonNegative(double value) {
+    return value.clamp(0.0, double.infinity);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -157,6 +162,144 @@ class _MeasurementPageState extends State<MeasurementPage> {
                             Positioned.fill(
                               child: Image.asset(
                                 AppAssets.measurementPage,
+                              ),
+                            ),
+
+                            // weight drag: adjusts both legs & apex
+                            Positioned(
+                              top: 280,
+                              left: 136,
+                              child: GestureDetector(
+                                onVerticalDragUpdate: (d) {
+                                  final delta =
+                                      -d.primaryDelta! / 50;
+                                  setState(() {
+                                    leftLeg =
+                                        _clampNonNegative(
+                                          leftLeg + delta,
+                                        );
+                                    rightLeg =
+                                        _clampNonNegative(
+                                          rightLeg + delta,
+                                        );
+                                    apexHeight =
+                                        _clampNonNegative(
+                                          apexHeight +
+                                              delta,
+                                        );
+                                  });
+                                },
+                                onHorizontalDragUpdate: (
+                                  d,
+                                ) {
+                                  final delta =
+                                      d.primaryDelta! / 50;
+                                  setState(() {
+                                    leftLeg =
+                                        _clampNonNegative(
+                                          leftLeg + delta,
+                                        );
+                                    rightLeg =
+                                        _clampNonNegative(
+                                          rightLeg + delta,
+                                        );
+                                    pointDist =
+                                        _clampNonNegative(
+                                          pointDist + delta,
+                                        );
+                                  });
+                                },
+                                child: Container(
+                                  width: 90,
+                                  height: 100,
+                                  color: Colors.transparent,
+                                ),
+                              ),
+                            ),
+
+                            // left beam drag: BEAM distances
+                            Positioned(
+                              top: 60,
+                              left: 0,
+                              child: GestureDetector(
+                                onVerticalDragUpdate: (d) {
+                                  final delta =
+                                      -d.primaryDelta! / 50;
+                                  setState(() {
+                                    leftDrop =
+                                        _clampNonNegative(
+                                          leftDrop + delta,
+                                        );
+                                    leftLeg =
+                                        _clampNonNegative(
+                                          leftLeg + delta,
+                                        );
+                                  });
+                                },
+                                onHorizontalDragUpdate: (
+                                  d,
+                                ) {
+                                  final delta =
+                                      d.primaryDelta! / 50;
+                                  setState(() {
+                                    beamDist =
+                                        _clampNonNegative(
+                                          beamDist + delta,
+                                        );
+                                    leftLeg =
+                                        _clampNonNegative(
+                                          leftLeg + delta,
+                                        );
+                                  });
+                                },
+                                child: Container(
+                                  width: 90,
+                                  height: 60,
+                                  color: Colors.transparent,
+                                ),
+                              ),
+                            ),
+
+                            // right beam drag
+                            Positioned(
+                              top: 60,
+                              right: 0,
+                              child: GestureDetector(
+                                onVerticalDragUpdate: (d) {
+                                  final delta =
+                                      -d.primaryDelta! / 50;
+                                  setState(() {
+                                    rightDrop =
+                                        _clampNonNegative(
+                                          rightDrop + delta,
+                                        );
+                                    rightLeg =
+                                        _clampNonNegative(
+                                          rightLeg + delta,
+                                        );
+                                  });
+                                },
+                                onHorizontalDragUpdate: (
+                                  d,
+                                ) {
+                                  final delta =
+                                      d.primaryDelta! / 50;
+                                  setState(() {
+                                    beamDist =
+                                        _clampNonNegative(
+                                          beamDist + delta,
+                                        );
+                                    rightLeg =
+                                        _clampNonNegative(
+                                          rightLeg + delta,
+                                        );
+                                  });
+                                },
+                                child: Container(
+                                  width: 90,
+                                  height: 60,
+                                  color: Colors.transparent,
+                                ),
                               ),
                             ),
 
