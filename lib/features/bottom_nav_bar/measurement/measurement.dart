@@ -38,6 +38,9 @@ class _MeasurementPageState extends State<MeasurementPage> {
   double pointDist = 0.07;
   double apexHeight = 0.00;
 
+  // Track the last unit to detect changes
+  String? _lastUnit;
+
   String beamValue = '';
   String leftLegValue = '';
   String rightLegValue = '';
@@ -52,9 +55,70 @@ class _MeasurementPageState extends State<MeasurementPage> {
     return value.clamp(0.0, double.infinity);
   }
 
+  // Check and convert values when unit changes
+  void _checkAndConvertValues(String currentUnit) {
+    if (_lastUnit != null && _lastUnit != currentUnit) {
+      print(
+        'Unit changed from $_lastUnit to $currentUnit - converting values',
+      );
+      _convertValuesToNewUnit(currentUnit);
+    }
+
+    _lastUnit = currentUnit;
+  }
+
+  // Convert all values when unit changes
+  void _convertValuesToNewUnit(String newUnit) {
+    // Use the stored last unit, not the current service unit
+    final oldUnit = _lastUnit;
+
+    print('Converting values from $oldUnit to $newUnit');
+    print(
+      'Before conversion - beamDist: $beamDist, leftLeg: $leftLeg',
+    );
+
+    // Schedule the conversion after the current build is complete
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        if (newUnit == 'Imperial') {
+          // Convert from meters to feet
+          beamDist = beamDist * 3.28084;
+          leftLeg = leftLeg * 3.28084;
+          rightLeg = rightLeg * 3.28084;
+          leftDrop = leftDrop * 3.28084;
+          rightDrop = rightDrop * 3.28084;
+          pointDist = pointDist * 3.28084;
+          apexHeight = apexHeight * 3.28084;
+        } else {
+          // Convert from feet to meters
+          beamDist = beamDist * 0.3048;
+          leftLeg = leftLeg * 0.3048;
+          rightLeg = rightLeg * 0.3048;
+          leftDrop = leftDrop * 0.3048;
+          rightDrop = rightDrop * 0.3048;
+          pointDist = pointDist * 0.3048;
+          apexHeight = apexHeight * 0.3048;
+        }
+      });
+    });
+
+    print(
+      'After conversion - beamDist: $beamDist, leftLeg: $leftLeg',
+    );
+  }
+
   @override
   void initState() {
     super.initState();
+    // Initialize the last unit to current unit
+    _lastUnit = _measurementService.getMeasurementUnit();
+  }
+
+  @override
+  void dispose() {
+    // Clean up listeners
+    Get.delete<MeasurementService>();
+    super.dispose();
   }
 
   @override
@@ -62,6 +126,18 @@ class _MeasurementPageState extends State<MeasurementPage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Obx(() {
+        // Watch both the values and the unit to trigger rebuilds
+        final currentUnit =
+            _measurementService.selectedUnit.value;
+
+        // Check if we need to convert values based on unit change
+        _checkAndConvertValues(currentUnit);
+
+        // Debug print to see what's happening
+        print(
+          'Obx rebuild - Unit: $currentUnit, beamDist: $beamDist, formatted: ${_measurementService.formatDistance(beamDist)}',
+        );
+
         // Set display values directly
         beamValue = _measurementService.formatDistance(
           beamDist,
@@ -762,7 +838,6 @@ class _MeasurementPageState extends State<MeasurementPage> {
                               hunds[i2] / 100;
                           onConfirm(raw);
                           Navigator.of(ctx).pop();
-                          setState(() {});
                         },
                       ),
                     ],
