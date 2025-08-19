@@ -1,12 +1,11 @@
+import 'package:clay_rigging_bridle/features/bottom_nav_bar/measurement/measurement_controller.dart';
 import 'package:clay_rigging_bridle/features/bottom_nav_bar/setting_screen/setting_screen.dart';
-import 'package:clay_rigging_bridle/features/common/measurement_service.dart';
 import 'package:clay_rigging_bridle/utils/app_assets.dart';
 import 'package:clay_rigging_bridle/utils/app_colors.dart';
 import 'package:clay_rigging_bridle/utils/app_text_styles.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 ///
 ///
@@ -26,129 +25,17 @@ class MeasurementPage extends StatefulWidget {
 }
 
 class _MeasurementPageState extends State<MeasurementPage> {
-  final MeasurementService _measurementService = Get.put(
-    MeasurementService(),
+  final MeasurementController _controller = Get.put(
+    MeasurementController(),
   );
-
-  // Store values in meters (base unit)
-  double beamDist = 2.68; // Default values in meters
-  double leftLeg = 1.90;
-  double rightLeg = 2.98;
-  double leftDrop = 1.94;
-  double rightDrop = 1.47;
-  double pointDist = 0.07;
-  double apexHeight = 0.00;
-
-  // Track the last unit to detect changes
-  String? _lastUnit;
-
-  String beamValue = '';
-  String leftLegValue = '';
-  String rightLegValue = '';
-  String leftBeamValue = '';
-  String rightBeamValue = '';
-  String pointDistanceValue = '';
-  String apexHeightValue = '';
-  String angleValue = '';
-
-  // Helper function to ensure values are non-negative
-  double _clampNonNegative(double value) {
-    return value.clamp(0.0, double.infinity);
-  }
-
-  // Save measurement values to preferences
-  Future<void> _saveMeasurementValues() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble('beamDist', beamDist);
-    await prefs.setDouble('leftLeg', leftLeg);
-    await prefs.setDouble('rightLeg', rightLeg);
-    await prefs.setDouble('leftDrop', leftDrop);
-    await prefs.setDouble('rightDrop', rightDrop);
-    await prefs.setDouble('pointDist', pointDist);
-    await prefs.setDouble('apexHeight', apexHeight);
-  }
-
-  // Load measurement values from preferences
-  Future<void> _loadMeasurementValues() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      beamDist = prefs.getDouble('beamDist') ?? 2.68;
-      leftLeg = prefs.getDouble('leftLeg') ?? 1.90;
-      rightLeg = prefs.getDouble('rightLeg') ?? 2.98;
-      leftDrop = prefs.getDouble('leftDrop') ?? 1.94;
-      rightDrop = prefs.getDouble('rightDrop') ?? 1.47;
-      pointDist = prefs.getDouble('pointDist') ?? 0.07;
-      apexHeight = prefs.getDouble('apexHeight') ?? 0.00;
-    });
-  }
-
-  // Check and convert values when unit changes
-  void _checkAndConvertValues(String currentUnit) {
-    if (_lastUnit != null && _lastUnit != currentUnit) {
-      print(
-        'Unit changed from $_lastUnit to $currentUnit - converting values',
-      );
-      _convertValuesToNewUnit(currentUnit);
-    }
-
-    _lastUnit = currentUnit;
-  }
-
-  // Convert all values when unit changes
-  void _convertValuesToNewUnit(String newUnit) {
-    // Use the stored last unit, not the current service unit
-    final oldUnit = _lastUnit;
-
-    print('Converting values from $oldUnit to $newUnit');
-    print(
-      'Before conversion - beamDist: $beamDist, leftLeg: $leftLeg',
-    );
-
-    // Schedule the conversion after the current build is complete
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      setState(() {
-        if (newUnit == 'Imperial') {
-          // Convert from meters to feet
-          beamDist = beamDist * 3.28084;
-          leftLeg = leftLeg * 3.28084;
-          rightLeg = rightLeg * 3.28084;
-          leftDrop = leftDrop * 3.28084;
-          rightDrop = rightDrop * 3.28084;
-          pointDist = pointDist * 3.28084;
-          apexHeight = apexHeight * 3.28084;
-        } else {
-          // Convert from feet to meters
-          beamDist = beamDist * 0.3048;
-          leftLeg = leftLeg * 0.3048;
-          rightLeg = rightLeg * 0.3048;
-          leftDrop = leftDrop * 0.3048;
-          rightDrop = rightDrop * 0.3048;
-          pointDist = pointDist * 0.3048;
-          apexHeight = apexHeight * 0.3048;
-        }
-      });
-      // Save the converted values
-      _saveMeasurementValues();
-    });
-
-    print(
-      'After conversion - beamDist: $beamDist, leftLeg: $leftLeg',
-    );
-  }
 
   @override
   void initState() {
     super.initState();
-    // Initialize the last unit to current unit
-    _lastUnit = _measurementService.getMeasurementUnit();
-    // Load saved measurement values
-    _loadMeasurementValues();
   }
 
   @override
   void dispose() {
-    // Clean up listeners
-    Get.delete<MeasurementService>();
     super.dispose();
   }
 
@@ -157,39 +44,13 @@ class _MeasurementPageState extends State<MeasurementPage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Obx(() {
-        // Watch both the values and the unit to trigger rebuilds
-        final currentUnit =
-            _measurementService.selectedUnit.value;
-
         // Check if we need to convert values based on unit change
-        _checkAndConvertValues(currentUnit);
-
-        // Debug print to see what's happening
-        print(
-          'Obx rebuild - Unit: $currentUnit, beamDist: $beamDist, formatted: ${_measurementService.formatDistance(beamDist)}',
+        _controller.checkAndConvertValues(
+          _controller.getCurrentUnit(),
         );
 
-        // Set display values directly
-        beamValue = _measurementService.formatDistance(
-          beamDist,
-        );
-        leftLegValue = _measurementService.formatDistance(
-          leftLeg,
-        );
-        rightLegValue = _measurementService.formatDistance(
-          rightLeg,
-        );
-        leftBeamValue = _measurementService.formatDistance(
-          leftDrop,
-        );
-        rightBeamValue = _measurementService.formatDistance(
-          rightDrop,
-        );
-        pointDistanceValue = _measurementService
-            .formatDistance(pointDist);
-        apexHeightValue = _measurementService
-            .formatDistance(apexHeight);
-        angleValue = '0°';
+        // Update display values
+        _controller.updateDisplayValues();
         return GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
           child: Scaffold(
@@ -251,43 +112,20 @@ class _MeasurementPageState extends State<MeasurementPage> {
                                 onVerticalDragUpdate: (d) {
                                   final delta =
                                       -d.primaryDelta! / 50;
-                                  setState(() {
-                                    leftLeg =
-                                        _clampNonNegative(
-                                          leftLeg + delta,
-                                        );
-                                    rightLeg =
-                                        _clampNonNegative(
-                                          rightLeg + delta,
-                                        );
-                                    apexHeight =
-                                        _clampNonNegative(
-                                          apexHeight +
-                                              delta,
-                                        );
-                                  });
-                                  _saveMeasurementValues();
+                                  _controller
+                                      .handleWeightVerticalDrag(
+                                        delta,
+                                      );
                                 },
                                 onHorizontalDragUpdate: (
                                   d,
                                 ) {
                                   final delta =
                                       d.primaryDelta! / 50;
-                                  setState(() {
-                                    leftLeg =
-                                        _clampNonNegative(
-                                          leftLeg + delta,
-                                        );
-                                    rightLeg =
-                                        _clampNonNegative(
-                                          rightLeg + delta,
-                                        );
-                                    pointDist =
-                                        _clampNonNegative(
-                                          pointDist + delta,
-                                        );
-                                  });
-                                  _saveMeasurementValues();
+                                  _controller
+                                      .handleWeightHorizontalDrag(
+                                        delta,
+                                      );
                                 },
                                 child: Container(
                                   width: 90,
@@ -305,34 +143,20 @@ class _MeasurementPageState extends State<MeasurementPage> {
                                 onVerticalDragUpdate: (d) {
                                   final delta =
                                       -d.primaryDelta! / 50;
-                                  setState(() {
-                                    leftDrop =
-                                        _clampNonNegative(
-                                          leftDrop + delta,
-                                        );
-                                    leftLeg =
-                                        _clampNonNegative(
-                                          leftLeg + delta,
-                                        );
-                                  });
-                                  _saveMeasurementValues();
+                                  _controller
+                                      .handleLeftBeamVerticalDrag(
+                                        delta,
+                                      );
                                 },
                                 onHorizontalDragUpdate: (
                                   d,
                                 ) {
                                   final delta =
                                       d.primaryDelta! / 50;
-                                  setState(() {
-                                    beamDist =
-                                        _clampNonNegative(
-                                          beamDist + delta,
-                                        );
-                                    leftLeg =
-                                        _clampNonNegative(
-                                          leftLeg + delta,
-                                        );
-                                  });
-                                  _saveMeasurementValues();
+                                  _controller
+                                      .handleLeftBeamHorizontalDrag(
+                                        delta,
+                                      );
                                 },
                                 child: Container(
                                   width: 90,
@@ -350,32 +174,20 @@ class _MeasurementPageState extends State<MeasurementPage> {
                                 onVerticalDragUpdate: (d) {
                                   final delta =
                                       -d.primaryDelta! / 50;
-                                  setState(() {
-                                    rightDrop =
-                                        _clampNonNegative(
-                                          rightDrop + delta,
-                                        );
-                                    rightLeg =
-                                        _clampNonNegative(
-                                          rightLeg + delta,
-                                        );
-                                  });
+                                  _controller
+                                      .handleRightBeamVerticalDrag(
+                                        delta,
+                                      );
                                 },
                                 onHorizontalDragUpdate: (
                                   d,
                                 ) {
                                   final delta =
                                       d.primaryDelta! / 50;
-                                  setState(() {
-                                    beamDist =
-                                        _clampNonNegative(
-                                          beamDist + delta,
-                                        );
-                                    rightLeg =
-                                        _clampNonNegative(
-                                          rightLeg + delta,
-                                        );
-                                  });
+                                  _controller
+                                      .handleRightBeamHorizontalDrag(
+                                        delta,
+                                      );
                                 },
                                 child: Container(
                                   width: 90,
@@ -389,115 +201,170 @@ class _MeasurementPageState extends State<MeasurementPage> {
                             _inputBox(
                               top: 72,
                               left: 145,
-                              display: beamValue,
+                              display:
+                                  _controller
+                                      .beamValue
+                                      .value,
                               title: 'Beam Distance',
                               onTap:
                                   () => _showPicker(
                                     title: 'Beam Distance',
-                                    currentValue: beamDist,
+                                    currentValue:
+                                        _controller
+                                            .beamDist
+                                            .value,
                                     onConfirm: (v) {
-                                      beamDist = v;
-                                      setState(() {});
-                                      _saveMeasurementValues();
+                                      _controller
+                                          .updateMeasurementValue(
+                                            'beamDist',
+                                            v,
+                                          );
                                     },
                                   ),
                             ),
                             _inputBox(
                               top: 208,
                               left: 80,
-                              display: leftLegValue,
+                              display:
+                                  _controller
+                                      .leftLegValue
+                                      .value,
                               title: 'Left Leg',
                               onTap:
                                   () => _showPicker(
                                     title: 'Left Leg',
-                                    currentValue: leftLeg,
+                                    currentValue:
+                                        _controller
+                                            .leftLeg
+                                            .value,
                                     onConfirm: (v) {
-                                      leftLeg = v;
-                                      setState(() {});
-                                      _saveMeasurementValues();
+                                      _controller
+                                          .updateMeasurementValue(
+                                            'leftLeg',
+                                            v,
+                                          );
                                     },
                                   ),
                             ),
                             _inputBox(
                               top: 208,
                               left: 206,
-                              display: rightLegValue,
+                              display:
+                                  _controller
+                                      .rightLegValue
+                                      .value,
                               title: 'Right Leg',
                               onTap:
                                   () => _showPicker(
                                     title: 'Right Leg',
-                                    currentValue: rightLeg,
+                                    currentValue:
+                                        _controller
+                                            .rightLeg
+                                            .value,
                                     onConfirm: (v) {
-                                      rightLeg = v;
-                                      setState(() {});
-                                      _saveMeasurementValues();
+                                      _controller
+                                          .updateMeasurementValue(
+                                            'rightLeg',
+                                            v,
+                                          );
                                     },
                                   ),
                             ),
                             _inputBox(
                               top: 258,
                               left: 5,
-                              display: leftBeamValue,
+                              display:
+                                  _controller
+                                      .leftBeamValue
+                                      .value,
                               title: 'Left Beam',
                               onTap:
                                   () => _showPicker(
                                     title:
                                         'Left Beam Height',
-                                    currentValue: leftDrop,
+                                    currentValue:
+                                        _controller
+                                            .leftDrop
+                                            .value,
                                     onConfirm: (v) {
-                                      leftDrop = v;
-                                      setState(() {});
-                                      _saveMeasurementValues();
+                                      _controller
+                                          .updateMeasurementValue(
+                                            'leftDrop',
+                                            v,
+                                          );
                                     },
                                   ),
                             ),
                             _inputBox(
                               top: 258,
                               left: 283,
-                              display: rightBeamValue,
+                              display:
+                                  _controller
+                                      .rightBeamValue
+                                      .value,
                               title: 'Right Beam',
                               onTap:
                                   () => _showPicker(
                                     title:
                                         'Right Beam Height',
-                                    currentValue: rightDrop,
+                                    currentValue:
+                                        _controller
+                                            .rightDrop
+                                            .value,
                                     onConfirm: (v) {
-                                      rightDrop = v;
-                                      setState(() {});
-                                      _saveMeasurementValues();
+                                      _controller
+                                          .updateMeasurementValue(
+                                            'rightDrop',
+                                            v,
+                                          );
                                     },
                                   ),
                             ),
                             _inputBox(
                               top: 390,
                               left: 45,
-                              display: pointDistanceValue,
+                              display:
+                                  _controller
+                                      .pointDistanceValue
+                                      .value,
                               title: 'Point Distance',
                               onTap:
                                   () => _showPicker(
                                     title: 'Point Distance',
-                                    currentValue: pointDist,
+                                    currentValue:
+                                        _controller
+                                            .pointDist
+                                            .value,
                                     onConfirm: (v) {
-                                      pointDist = v;
-                                      setState(() {});
-                                      _saveMeasurementValues();
+                                      _controller
+                                          .updateMeasurementValue(
+                                            'pointDist',
+                                            v,
+                                          );
                                     },
                                   ),
                             ),
                             _inputBox(
                               top: 464,
                               left: 141,
-                              display: apexHeightValue,
+                              display:
+                                  _controller
+                                      .apexHeightValue
+                                      .value,
                               title: 'Apex Height',
                               onTap:
                                   () => _showPicker(
                                     title: 'Apex Height',
                                     currentValue:
-                                        apexHeight,
+                                        _controller
+                                            .apexHeight
+                                            .value,
                                     onConfirm: (v) {
-                                      apexHeight = v;
-                                      setState(() {});
-                                      _saveMeasurementValues();
+                                      _controller
+                                          .updateMeasurementValue(
+                                            'apexHeight',
+                                            v,
+                                          );
                                     },
                                   ),
                             ),
@@ -506,7 +373,10 @@ class _MeasurementPageState extends State<MeasurementPage> {
                             _outputBox(
                               top: 152,
                               left: 145,
-                              display: angleValue,
+                              display:
+                                  _controller
+                                      .angleValue
+                                      .value,
                             ),
                           ],
                         ),
@@ -528,8 +398,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
     required ValueChanged<double> onConfirm,
   }) async {
     // Check the input type setting
-    final inputType =
-        _measurementService.selectedInputType.value;
+    final inputType = _controller.getCurrentInputType();
 
     if (inputType == 'Numeric') {
       // Show numeric keyboard input
@@ -538,8 +407,6 @@ class _MeasurementPageState extends State<MeasurementPage> {
         currentValue: currentValue,
         onConfirm: (value) {
           onConfirm(value);
-          setState(() {});
-          _saveMeasurementValues();
         },
       );
     } else {
@@ -706,7 +573,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
                         const SizedBox(height: 8),
                         Obx(
                           () => Text(
-                            'Unit: ${_measurementService.getDistanceUnit()}',
+                            'Unit: ${_controller.getCurrentUnit()}',
                             style: AppTextStyle.bodySmall
                                 .copyWith(
                                   color: AppColors
@@ -852,7 +719,6 @@ class _MeasurementPageState extends State<MeasurementPage> {
                               hunds[i2] / 100;
                           onConfirm(raw);
                           Navigator.of(ctx).pop();
-                          _saveMeasurementValues();
                         },
                       ),
                     ],

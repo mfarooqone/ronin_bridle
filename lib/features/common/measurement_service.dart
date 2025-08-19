@@ -1,5 +1,5 @@
+import 'package:clay_rigging_bridle/features/common/preferences_service.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class MeasurementService extends GetxController {
   static MeasurementService get to => Get.find();
@@ -18,24 +18,21 @@ class MeasurementService extends GetxController {
 
   // Save all preferences
   Future<void> _savePreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-      'selectedUnit',
-      selectedUnit.value,
-    );
-    await prefs.setString(
-      'selectedInputType',
+    final preferencesService =
+        Get.find<PreferencesService>();
+    await preferencesService.saveUnit(selectedUnit.value);
+    await preferencesService.saveInputType(
       selectedInputType.value,
     );
   }
 
   // Load all preferences
   Future<void> _loadPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    selectedUnit.value =
-        prefs.getString('selectedUnit') ?? 'Metric';
+    final preferencesService =
+        Get.find<PreferencesService>();
+    selectedUnit.value = await preferencesService.getUnit();
     selectedInputType.value =
-        prefs.getString('selectedInputType') ?? 'Numeric';
+        await preferencesService.getInputType();
   }
 
   double convertDistance(double valueInMeters) {
