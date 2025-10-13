@@ -84,30 +84,30 @@ class _MeasurementPageState extends State<MeasurementPage> {
                                 size: 30,
                               ),
                             ),
-                            IconButton(
-                              onPressed: () {
-                                // Set test values for angle calculation
-                                _controller.setTestValues();
-                                ScaffoldMessenger.of(
-                                  context,
-                                ).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'Test values set (Beam: 100, Left: 97.91, Right: 100)',
-                                    ),
-                                    backgroundColor:
-                                        AppColors
-                                            .primaryColor,
-                                  ),
-                                );
-                              },
-                              icon: Icon(
-                                Icons.science,
-                                color:
-                                    AppColors.primaryColor,
-                                size: 30,
-                              ),
-                            ),
+                            // IconButton(
+                            //   onPressed: () {
+                            //     // Set test values for angle calculation
+                            //     _controller.setTestValues();
+                            //     ScaffoldMessenger.of(
+                            //       context,
+                            //     ).showSnackBar(
+                            //       SnackBar(
+                            //         content: Text(
+                            //           'Test values set (Beam: 100, Left: 97.91, Right: 100)',
+                            //         ),
+                            //         backgroundColor:
+                            //             AppColors
+                            //                 .primaryColor,
+                            //       ),
+                            //     );
+                            //   },
+                            //   icon: Icon(
+                            //     Icons.science,
+                            //     color:
+                            //         AppColors.primaryColor,
+                            //     size: 30,
+                            //   ),
+                            // ),
                           ],
                         ),
                         IconButton(

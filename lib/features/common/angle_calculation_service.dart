@@ -115,9 +115,10 @@ class AngleCalculationService {
   /// Format angle in degrees with specified decimal places
   static String formatAngle(
     double angleInDegrees, {
-    int decimalPlaces = 1,
+    int decimalPlaces =
+        0, // Changed from 1 to 0 for whole numbers
   }) {
-    return '${angleInDegrees.toStringAsFixed(decimalPlaces)}°';
+    return '${angleInDegrees.round()}°'; // Use round() for whole numbers
   }
 
   /// Calculate the apex angle for a rigging bridle configuration
