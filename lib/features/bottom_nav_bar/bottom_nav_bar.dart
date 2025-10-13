@@ -17,9 +17,6 @@ class BottomNavBarScreen extends StatefulWidget {
 
 class _BottomNavBarScreenState
     extends State<BottomNavBarScreen> {
-  ///
-  ///
-  ///
   late PersistentTabController controller;
 
   @override
@@ -31,9 +28,7 @@ class _BottomNavBarScreenState
   }
 
   Future<void> updateData() async {
-    WidgetsBinding.instance.addPostFrameCallback(
-      (timeStamp) async {},
-    );
+    // Future data loading can be implemented here
   }
 
   @override
@@ -89,25 +84,6 @@ class _BottomNavBarScreenState
                         .copyWith(color: AppColors.white),
                   ),
                 ),
-
-                // PersistentTabConfig(
-                //   screen: MaterialScreen(),
-                //   item: ItemConfig(
-                //     icon: Image.asset(
-                //       AppAssets.selectMaterial,
-                //     ),
-                //     inactiveIcon: Image.asset(
-                //       AppAssets.material,
-                //     ),
-                //     activeForegroundColor:
-                //         AppColors.primaryColor,
-                //     inactiveForegroundColor:
-                //         AppColors.black,
-                //     title: "Material",
-                //     textStyle: AppTextStyle.titleSmall
-                //         .copyWith(color: AppColors.white),
-                //   ),
-                // ),
                 PersistentTabConfig(
                   screen: WeightScreen(),
                   item: ItemConfig(

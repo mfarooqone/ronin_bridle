@@ -5,17 +5,11 @@ import 'package:clay_rigging_bridle/utils/app_colors.dart';
 import 'package:clay_rigging_bridle/utils/app_text_styles.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-///
-///
-/// lft right right legs will be
-/// it should be only
-/// if it is in Imp then it will be in pound
-/// /// if it is in metric then other page and otherwise other page
-/// ti souult 20ft to  200 ft
-///
-
+/// Measurement page for rigging bridle calculations
+/// Allows users to input measurements and see real-time angle calculations
 class MeasurementPage extends StatefulWidget {
   const MeasurementPage({Key? key}) : super(key: key);
 
@@ -587,6 +581,11 @@ class _MeasurementPageState extends State<MeasurementPage> {
                           placeholder: '0.00',
                           textAlign: TextAlign.center,
                           style: AppTextStyle.titleMedium,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                              RegExp(r'^\d*\.?\d{0,2}$'),
+                            ),
+                          ],
                           decoration: BoxDecoration(
                             border: Border.all(
                               color: AppColors.primaryColor,
@@ -596,30 +595,63 @@ class _MeasurementPageState extends State<MeasurementPage> {
                           ),
                           onChanged: (value) {
                             if (value.isNotEmpty) {
-                              final regex = RegExp(
-                                r'^\d*\.?\d{0,2}$',
-                              );
-                              if (!regex.hasMatch(value)) {
-                                final cleanValue = value
-                                    .replaceAll(
-                                      RegExp(r'[^\d.]'),
-                                      '',
+                              // Only allow numbers and one decimal point
+                              final cleanValue = value
+                                  .replaceAll(
+                                    RegExp(r'[^\d.]'),
+                                    '',
+                                  );
+
+                              // Ensure only one decimal point
+                              final parts = cleanValue
+                                  .split('.');
+                              if (parts.length > 2) {
+                                // If multiple decimal points, keep only the first one
+                                controller.text =
+                                    '${parts[0]}.${parts.sublist(1).join('')}';
+                                controller.selection =
+                                    TextSelection.fromPosition(
+                                      TextPosition(
+                                        offset:
+                                            controller
+                                                .text
+                                                .length,
+                                      ),
                                     );
-                                final parts = cleanValue
-                                    .split('.');
-                                if (parts.length > 2) {
-                                  controller.text =
-                                      '${parts[0]}.${parts.sublist(1).join('')}';
-                                  controller.selection =
-                                      TextSelection.fromPosition(
-                                        TextPosition(
-                                          offset:
-                                              controller
-                                                  .text
-                                                  .length,
-                                        ),
-                                      );
-                                }
+                                return;
+                              }
+
+                              // If there's a decimal point, limit to 2 decimal places
+                              if (parts.length == 2 &&
+                                  parts[1].length > 2) {
+                                controller.text =
+                                    '${parts[0]}.${parts[1].substring(0, 2)}';
+                                controller.selection =
+                                    TextSelection.fromPosition(
+                                      TextPosition(
+                                        offset:
+                                            controller
+                                                .text
+                                                .length,
+                                      ),
+                                    );
+                                return;
+                              }
+
+                              // Update the controller text if it's different
+                              if (controller.text !=
+                                  cleanValue) {
+                                controller.text =
+                                    cleanValue;
+                                controller.selection =
+                                    TextSelection.fromPosition(
+                                      TextPosition(
+                                        offset:
+                                            controller
+                                                .text
+                                                .length,
+                                      ),
+                                    );
                               }
                             }
                           },

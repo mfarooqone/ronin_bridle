@@ -20,6 +20,7 @@ class _WeightScreenState extends State<WeightScreen> {
   final TextEditingController _wllController =
       TextEditingController(text: '0');
 
+  // Force calculation results
   double _leftVertical = 0;
   double _leftLeg = 0;
   double _rightLeg = 0;
@@ -28,12 +29,20 @@ class _WeightScreenState extends State<WeightScreen> {
   double _wllValue = 0;
   bool _isExceeded = false;
 
+  /// Calculate forces based on weight and WLL (Working Load Limit)
   void _calculateForces() {
-    final weight =
-        double.tryParse(_weightController.text) ?? 0;
+    final weight = double.tryParse(_weightController.text) ?? 0;
     final wll = double.tryParse(_wllController.text) ?? 0;
-    final vertical = weight / 2;
-    final horizontal = weight * 0.3;
+    
+    // Validate inputs
+    if (weight < 0 || wll < 0) {
+      _resetForces();
+      return;
+    }
+    
+    // Calculate forces using rigging bridle physics
+    final vertical = weight / 2; // Each leg carries half the weight
+    final horizontal = weight * 0.3; // Horizontal force component
     final legTension = sqrt(
       vertical * vertical + horizontal * horizontal,
     );
@@ -47,6 +56,19 @@ class _WeightScreenState extends State<WeightScreen> {
       _leftLeg = legTension;
       _rightLeg = legTension;
       _isExceeded = exceeded;
+    });
+  }
+
+  /// Reset all force values to zero
+  void _resetForces() {
+    setState(() {
+      _wllValue = 0;
+      _leftVertical = 0;
+      _rightVertical = 0;
+      _horizontal = 0;
+      _leftLeg = 0;
+      _rightLeg = 0;
+      _isExceeded = false;
     });
   }
 
@@ -147,9 +169,7 @@ class _WeightScreenState extends State<WeightScreen> {
                   ],
                   SizedBox(height: h * 0.02),
 
-                  ///
-                  ///
-                  ///
+                  // Input controls section
                   Column(
                     children: [
                       Row(
@@ -185,10 +205,7 @@ class _WeightScreenState extends State<WeightScreen> {
                       ),
                       SizedBox(height: h * 0.01),
 
-                      ///
-                      ///
-                      ///
-                      ///
+                      // Input fields for weight and WLL
                       Row(
                         children: [
                           Column(
@@ -216,9 +233,7 @@ class _WeightScreenState extends State<WeightScreen> {
                           ),
                           SizedBox(width: w * 0.05),
 
-                          ///
-                          ///
-                          ///
+                          // Weight input field
                           Column(
                             children: [
                               Text(
@@ -255,6 +270,12 @@ class _WeightScreenState extends State<WeightScreen> {
     );
   }
 
+  /// Build a force display widget with arrow and value
+  /// [angle] - rotation angle for the arrow icon
+  /// [label] - text label for the force type
+  /// [value] - force value to display
+  /// [iconSize] - size of the arrow icon
+  /// [isOverload] - whether this force exceeds the WLL
   Widget _buildForce(
     double angle,
     String label,
@@ -291,6 +312,7 @@ class _WeightScreenState extends State<WeightScreen> {
   }
 }
 
+/// Widget displaying the beam with horizontal force visualization
 class BeamWidget extends StatelessWidget {
   const BeamWidget({
     Key? key,
@@ -298,7 +320,10 @@ class BeamWidget extends StatelessWidget {
     required this.horizontalForce,
   }) : super(key: key);
 
+  /// Size of the arrow icons
   final double iconSize;
+  
+  /// Horizontal force value to display
   final double horizontalForce;
 
   @override

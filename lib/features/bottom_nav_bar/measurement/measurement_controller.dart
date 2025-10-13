@@ -1,3 +1,4 @@
+import 'package:clay_rigging_bridle/features/common/angle_calculation_service.dart';
 import 'package:clay_rigging_bridle/features/common/measurement_service.dart';
 import 'package:clay_rigging_bridle/features/common/preferences_service.dart';
 import 'package:get/get.dart';
@@ -47,9 +48,6 @@ class MeasurementController extends GetxController {
   // Check and convert values when unit changes
   void checkAndConvertValues(String currentUnit) {
     if (_lastUnit != null && _lastUnit != currentUnit) {
-      print(
-        'Unit changed from $_lastUnit to $currentUnit - converting values',
-      );
       _convertValuesToNewUnit(currentUnit);
     }
     _lastUnit = currentUnit;
@@ -57,13 +55,6 @@ class MeasurementController extends GetxController {
 
   // Convert all values when unit changes
   void _convertValuesToNewUnit(String newUnit) {
-    final oldUnit = _lastUnit;
-
-    print('Converting values from $oldUnit to $newUnit');
-    print(
-      'Before conversion - beamDist: ${beamDist.value}, leftLeg: ${leftLeg.value}',
-    );
-
     if (newUnit == 'Imperial') {
       // Convert from meters to feet
       beamDist.value = beamDist.value * 3.28084;
@@ -83,10 +74,6 @@ class MeasurementController extends GetxController {
       pointDist.value = pointDist.value * 0.3048;
       apexHeight.value = apexHeight.value * 0.3048;
     }
-
-    print(
-      'After conversion - beamDist: ${beamDist.value}, leftLeg: ${leftLeg.value}',
-    );
 
     // Save the converted values
     _saveMeasurementValues();
@@ -110,7 +97,45 @@ class MeasurementController extends GetxController {
         .formatDistance(pointDist.value);
     apexHeightValue.value = _measurementService
         .formatDistance(apexHeight.value);
-    angleValue.value = '0°';
+
+    // Calculate the apex angle using Law of Cosines (SSS method)
+    angleValue.value = _calculateApexAngle();
+  }
+
+  /// Calculate the apex angle using Law of Cosines
+  /// For a rigging bridle, this is the angle at the apex where the two legs meet
+  String _calculateApexAngle() {
+    // Check if we have valid measurements for angle calculation
+    if (leftLeg.value <= 0 ||
+        rightLeg.value <= 0 ||
+        beamDist.value <= 0) {
+      return '0°';
+    }
+
+    // Calculate the apex angle using the triangle formed by:
+    // - leftLeg (side a)
+    // - rightLeg (side b)
+    // - beamDistance (side c)
+    final apexAngle =
+        AngleCalculationService.calculateApexAngle(
+          leftLeg.value,
+          rightLeg.value,
+          beamDist.value,
+        );
+
+    // Validate the triangle
+    final validation =
+        AngleCalculationService.validateTriangle(
+          leftLeg.value,
+          rightLeg.value,
+          beamDist.value,
+        );
+
+    if (validation != "Valid triangle") {
+      return 'Invalid';
+    }
+
+    return AngleCalculationService.formatAngle(apexAngle);
   }
 
   // Update individual measurement value
@@ -138,6 +163,10 @@ class MeasurementController extends GetxController {
         apexHeight.value = value;
         break;
     }
+
+    // Update display values including angle calculation
+    updateDisplayValues();
+
     // Save the updated value
     _saveMeasurementValues();
   }
@@ -253,5 +282,78 @@ class MeasurementController extends GetxController {
   // Get current unit
   String getCurrentUnit() {
     return _measurementService.selectedUnit.value;
+  }
+
+  /// Get detailed angle information for the rigging bridle configuration
+  Map<String, String> getAngleInformation() {
+    if (leftLeg.value <= 0 ||
+        rightLeg.value <= 0 ||
+        beamDist.value <= 0) {
+      return {
+        'apexAngle': '0°',
+        'leftLegAngle': '0°',
+        'rightLegAngle': '0°',
+        'validation': 'Invalid measurements',
+      };
+    }
+
+    final apexAngle =
+        AngleCalculationService.calculateApexAngle(
+          leftLeg.value,
+          rightLeg.value,
+          beamDist.value,
+        );
+
+    final leftLegAngle =
+        AngleCalculationService.calculateLeftLegAngle(
+          leftLeg.value,
+          leftDrop.value,
+          beamDist.value,
+        );
+
+    final rightLegAngle =
+        AngleCalculationService.calculateRightLegAngle(
+          rightLeg.value,
+          rightDrop.value,
+          beamDist.value,
+        );
+
+    final validation =
+        AngleCalculationService.validateTriangle(
+          leftLeg.value,
+          rightLeg.value,
+          beamDist.value,
+        );
+
+    return {
+      'apexAngle': AngleCalculationService.formatAngle(
+        apexAngle,
+      ),
+      'leftLegAngle': AngleCalculationService.formatAngle(
+        leftLegAngle,
+      ),
+      'rightLegAngle': AngleCalculationService.formatAngle(
+        rightLegAngle,
+      ),
+      'validation': validation,
+    };
+  }
+
+  /// Check if the current configuration forms a valid triangle
+  bool isValidConfiguration() {
+    if (leftLeg.value <= 0 ||
+        rightLeg.value <= 0 ||
+        beamDist.value <= 0) {
+      return false;
+    }
+
+    final validation =
+        AngleCalculationService.validateTriangle(
+          leftLeg.value,
+          rightLeg.value,
+          beamDist.value,
+        );
+
+    return validation == "Valid triangle";
   }
 }

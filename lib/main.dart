@@ -6,30 +6,23 @@ import 'package:clay_rigging_bridle/utils/app_labels.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// Route observer for tracking navigation events
 final RouteObserver<ModalRoute<void>> routeObserver =
     RouteObserver<ModalRoute<void>>();
 
+/// Main entry point of the application
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
-class MyApp extends StatefulWidget {
+/// Root widget of the application
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    // Initialize services
+    // Initialize core services
     Get.put(PreferencesService());
     Get.put(MeasurementService());
 
@@ -39,10 +32,10 @@ class _MyAppState extends State<MyApp> {
       theme: ThemeData(
         primaryColor: AppColors.primaryColor,
         scaffoldBackgroundColor: AppColors.white,
+        useMaterial3: true,
       ),
-      // initialBinding: createBindings(context),
       navigatorObservers: [routeObserver],
-      home: SplashScreen(),
+      home: const SplashScreen(),
       builder: (context, child) {
         return MediaQuery(
           data: MediaQuery.of(
