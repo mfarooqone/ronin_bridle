@@ -9,14 +9,14 @@ class MeasurementController extends GetxController {
   final PreferencesService _preferencesService =
       Get.find<PreferencesService>();
 
-  // Observable measurement values
-  final RxDouble beamDist = 0.00.obs;
-  final RxDouble leftLeg = 0.00.obs;
-  final RxDouble rightLeg = 0.00.obs;
-  final RxDouble leftDrop = 0.00.obs;
-  final RxDouble rightDrop = 0.00.obs;
-  final RxDouble pointDist = 0.00.obs;
-  final RxDouble apexHeight = 0.00.obs;
+  // Observable measurement values - Hardcoded for testing
+  final RxDouble beamDist = 0.00.obs; // Beam Distance
+  final RxDouble leftLeg = 0.00.obs; // Left Leg
+  final RxDouble rightLeg = 0.00.obs; // Right Leg
+  final RxDouble leftDrop = 0.00.obs; // Left Beam Height
+  final RxDouble rightDrop = 0.00.obs; // Right Beam Height
+  final RxDouble pointDist = 0.00.obs; // Point Distance
+  final RxDouble apexHeight = 0.00.obs; // Apex Height
 
   // Observable display values
   final RxString beamValue = ''.obs;
@@ -36,8 +36,18 @@ class MeasurementController extends GetxController {
     super.onInit();
     // Initialize the last unit to current unit
     _lastUnit = _measurementService.getMeasurementUnit();
-    // Load saved measurement values
-    _loadMeasurementValues();
+
+    // Using hardcoded values - skip loading from preferences
+    // _loadMeasurementValues();
+
+    // Update display values with hardcoded values
+    updateDisplayValues();
+  }
+
+  /// TEMPORARY: Clear all values for testing
+  /// Remove this method after testing
+  Future<void> _clearAllValuesForTesting() async {
+    await _preferencesService.resetAllMeasurementValues();
   }
 
   // Helper function to ensure values are non-negative
@@ -355,5 +365,44 @@ class MeasurementController extends GetxController {
         );
 
     return validation == "Valid triangle";
+  }
+
+  /// Reset all measurement values to 0 (for testing)
+  Future<void> resetAllValues() async {
+    beamDist.value = 0.0;
+    leftLeg.value = 0.0;
+    rightLeg.value = 0.0;
+    leftDrop.value = 0.0;
+    rightDrop.value = 0.0;
+    pointDist.value = 0.0;
+    apexHeight.value = 0.0;
+
+    // Update display values
+    updateDisplayValues();
+
+    // Save the reset values
+    await _saveMeasurementValues();
+  }
+
+  /// Set test values for angle calculation testing
+  void setTestValues({
+    double beamDistance = 35.80,
+    double leftLegLength = 91.34,
+    double rightLegLength = 91.87,
+    double leftBeamHeight = 97.60,
+    double rightBeamHeight = 97.69,
+    double pointDistance = 16.78,
+    double apexHeightValue = 7.81,
+  }) {
+    beamDist.value = beamDistance;
+    leftLeg.value = leftLegLength;
+    rightLeg.value = rightLegLength;
+    leftDrop.value = leftBeamHeight;
+    rightDrop.value = rightBeamHeight;
+    pointDist.value = pointDistance;
+    apexHeight.value = apexHeightValue;
+
+    // Update display values
+    updateDisplayValues();
   }
 }

@@ -15,15 +15,15 @@ class PreferencesService extends GetxController {
   static const String _pointDistKey = 'pointDist';
   static const String _apexHeightKey = 'apexHeight';
 
-  // Default values
+  // Default values - Reset to 0 for testing
   static const String _defaultUnit = 'Metric';
   static const String _defaultInputType = 'Numeric';
-  static const double _defaultBeamDist = 2.68;
-  static const double _defaultLeftLeg = 1.90;
-  static const double _defaultRightLeg = 2.98;
-  static const double _defaultLeftDrop = 1.94;
-  static const double _defaultRightDrop = 1.47;
-  static const double _defaultPointDist = 0.07;
+  static const double _defaultBeamDist = 0.00;
+  static const double _defaultLeftLeg = 0.00;
+  static const double _defaultRightLeg = 0.00;
+  static const double _defaultLeftDrop = 0.00;
+  static const double _defaultRightDrop = 0.00;
+  static const double _defaultPointDist = 0.00;
   static const double _defaultApexHeight = 0.00;
 
   // Measurement settings
@@ -176,5 +176,19 @@ class PreferencesService extends GetxController {
   Future<void> clearAllPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
+  }
+
+  // Reset all measurement values to 0 (for testing)
+  Future<void> resetAllMeasurementValues() async {
+    final prefs = await SharedPreferences.getInstance();
+    await Future.wait([
+      prefs.setDouble(_beamDistKey, 0.0),
+      prefs.setDouble(_leftLegKey, 0.0),
+      prefs.setDouble(_rightLegKey, 0.0),
+      prefs.setDouble(_leftDropKey, 0.0),
+      prefs.setDouble(_rightDropKey, 0.0),
+      prefs.setDouble(_pointDistKey, 0.0),
+      prefs.setDouble(_apexHeightKey, 0.0),
+    ]);
   }
 }

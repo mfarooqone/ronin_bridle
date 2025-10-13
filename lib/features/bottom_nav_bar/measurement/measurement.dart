@@ -53,23 +53,79 @@ class _MeasurementPageState extends State<MeasurementPage> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    Align(
-                      alignment: Alignment.topRight,
-                      child: IconButton(
-                        onPressed: () {
-                          showPreferencesDialog(
-                            context: context,
-                            title: "Measurements",
-                            body:
-                                'Drag beams or the weight to adjust values. Tap a field to enter numbers directly.',
-                          );
-                        },
-                        icon: Icon(
-                          Icons.info_outline,
-                          color: AppColors.primaryColor,
-                          size: 30,
+                    Row(
+                      mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            IconButton(
+                              onPressed: () async {
+                                // Reset all values to 0
+                                await _controller
+                                    .resetAllValues();
+                                ScaffoldMessenger.of(
+                                  context,
+                                ).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'All values reset to 0',
+                                    ),
+                                    backgroundColor:
+                                        AppColors
+                                            .primaryColor,
+                                  ),
+                                );
+                              },
+                              icon: Icon(
+                                Icons.refresh,
+                                color:
+                                    AppColors.primaryColor,
+                                size: 30,
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                // Set test values for angle calculation
+                                _controller.setTestValues();
+                                ScaffoldMessenger.of(
+                                  context,
+                                ).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Test values set (Beam: 100, Left: 97.91, Right: 100)',
+                                    ),
+                                    backgroundColor:
+                                        AppColors
+                                            .primaryColor,
+                                  ),
+                                );
+                              },
+                              icon: Icon(
+                                Icons.science,
+                                color:
+                                    AppColors.primaryColor,
+                                size: 30,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
+                        IconButton(
+                          onPressed: () {
+                            showPreferencesDialog(
+                              context: context,
+                              title: "Measurements",
+                              body:
+                                  'Drag beams or the weight to adjust values. Tap a field to enter numbers directly.',
+                            );
+                          },
+                          icon: Icon(
+                            Icons.info_outline,
+                            color: AppColors.primaryColor,
+                            size: 30,
+                          ),
+                        ),
+                      ],
                     ),
                     Text(
                       'Rigging Bridle Measurement',

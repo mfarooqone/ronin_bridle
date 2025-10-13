@@ -122,16 +122,37 @@ class AngleCalculationService {
 
   /// Calculate the apex angle for a rigging bridle configuration
   /// This is the angle at the apex point where the two legs meet
+  /// In a rigging bridle, this is the angle between the two legs
   static double calculateApexAngle(
     double leftLeg,
     double rightLeg,
     double beamDistance,
   ) {
-    // For rigging bridle, the apex angle is angle C in the triangle formed by:
-    // - leftLeg (side a)
-    // - rightLeg (side b)
-    // - beamDistance (side c)
-    return calculateAngleC(leftLeg, rightLeg, beamDistance);
+    // For rigging bridle, the apex angle is the angle between the two legs
+    // We calculate this using the Law of Cosines
+    // The triangle is formed by: leftLeg, rightLeg, and beamDistance
+    // The apex angle is the angle opposite to the beamDistance
+
+    if (!_isValidTriangle(
+      leftLeg,
+      rightLeg,
+      beamDistance,
+    )) {
+      return 0.0;
+    }
+
+    // Using Law of Cosines: cos(C) = (a² + b² - c²) / (2ab)
+    // where C is the angle opposite to side c (beamDistance)
+    // a = leftLeg, b = rightLeg, c = beamDistance
+    final cosC =
+        (leftLeg * leftLeg +
+            rightLeg * rightLeg -
+            beamDistance * beamDistance) /
+        (2 * leftLeg * rightLeg);
+
+    // Clamp to avoid numerical errors
+    final clampedCosC = cosC.clamp(-1.0, 1.0);
+    return acos(clampedCosC) * _radiansToDegrees;
   }
 
   /// Calculate the angle between left leg and horizontal (beam)
