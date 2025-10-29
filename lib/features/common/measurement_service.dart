@@ -55,7 +55,32 @@ class MeasurementService extends GetxController {
 
   String formatDistance(double value) {
     final unit = getDistanceUnit();
+
+    if (selectedUnit.value == 'Imperial') {
+      // Convert decimal feet to feet and inches
+      final feet = value.floor();
+      final inches = ((value - feet) * 12).round();
+
+      if (inches == 0) {
+        return '$feet${unit}';
+      } else {
+        return '$feet${unit} ${inches}in';
+      }
+    }
+
     return '${value.toStringAsFixed(2)} $unit';
+  }
+
+  // Convert feet and inches to decimal feet
+  double feetInchesToDecimalFeet(int feet, int inches) {
+    return feet + (inches / 12.0);
+  }
+
+  // Convert decimal feet to feet and inches
+  Map<String, int> decimalFeetToFeetInches(double value) {
+    final feet = value.floor();
+    final inches = ((value - feet) * 12).round();
+    return {'feet': feet, 'inches': inches};
   }
 
   void setMeasurementUnit(String unit) {

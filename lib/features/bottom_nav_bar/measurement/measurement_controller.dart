@@ -46,9 +46,9 @@ class MeasurementController extends GetxController {
 
   /// TEMPORARY: Clear all values for testing
   /// Remove this method after testing
-  Future<void> _clearAllValuesForTesting() async {
-    await _preferencesService.resetAllMeasurementValues();
-  }
+  // Future<void> _clearAllValuesForTesting() async {
+  //   await _preferencesService.resetAllMeasurementValues();
+  // }
 
   // Helper function to ensure values are non-negative
   double _clampNonNegative(double value) {
@@ -254,22 +254,22 @@ class MeasurementController extends GetxController {
     );
   }
 
-  // Load measurement values from preferences
-  Future<void> _loadMeasurementValues() async {
-    final values =
-        await _preferencesService.getAllMeasurementValues();
+  // // Load measurement values from preferences
+  // Future<void> _loadMeasurementValues() async {
+  //   final values =
+  //       await _preferencesService.getAllMeasurementValues();
 
-    beamDist.value = values['beamDist']!;
-    leftLeg.value = values['leftLeg']!;
-    rightLeg.value = values['rightLeg']!;
-    leftDrop.value = values['leftDrop']!;
-    rightDrop.value = values['rightDrop']!;
-    pointDist.value = values['pointDist']!;
-    apexHeight.value = values['apexHeight']!;
+  //   beamDist.value = values['beamDist']!;
+  //   leftLeg.value = values['leftLeg']!;
+  //   rightLeg.value = values['rightLeg']!;
+  //   leftDrop.value = values['leftDrop']!;
+  //   rightDrop.value = values['rightDrop']!;
+  //   pointDist.value = values['pointDist']!;
+  //   apexHeight.value = values['apexHeight']!;
 
-    // Update display values after loading
-    updateDisplayValues();
-  }
+  //   // Update display values after loading
+  //   updateDisplayValues();
+  // }
 
   // Get current measurement values for picker
   Map<String, double> getCurrentValues() {

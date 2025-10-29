@@ -1,5 +1,6 @@
 import 'package:clay_rigging_bridle/features/bottom_nav_bar/measurement/measurement_controller.dart';
 import 'package:clay_rigging_bridle/features/bottom_nav_bar/setting_screen/setting_screen.dart';
+import 'package:clay_rigging_bridle/features/common/measurement_service.dart';
 import 'package:clay_rigging_bridle/utils/app_assets.dart';
 import 'package:clay_rigging_bridle/utils/app_colors.dart';
 import 'package:clay_rigging_bridle/utils/app_text_styles.dart';
@@ -469,10 +470,29 @@ class _MeasurementPageState extends State<MeasurementPage> {
     required double currentValue,
     required ValueChanged<double> onConfirm,
   }) async {
-    final TextEditingController controller =
-        TextEditingController(
-          text: currentValue.toString(),
-        );
+    final isImperial =
+        _controller.getCurrentUnit() == 'Imperial';
+
+    // For Imperial, convert to feet and inches
+    final feetController = TextEditingController(text: '0');
+    final inchesController = TextEditingController(
+      text: '0',
+    );
+
+    // For Metric, keep decimal input
+    final controller = TextEditingController(
+      text: currentValue.toString(),
+    );
+
+    if (isImperial) {
+      final measurementService =
+          Get.find<MeasurementService>();
+      final feetInches = measurementService
+          .decimalFeetToFeetInches(currentValue);
+      feetController.text = feetInches['feet']!.toString();
+      inchesController.text =
+          feetInches['inches']!.toString();
+    }
 
     await showModalBottomSheet(
       context: context,
@@ -487,7 +507,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
               constraints: BoxConstraints(
                 maxHeight:
                     MediaQuery.of(ctx).size.height * 0.6,
-                minHeight: 300,
+                minHeight: isImperial ? 350 : 300,
               ),
               decoration: const BoxDecoration(
                 color: Colors.white,
@@ -551,11 +571,37 @@ class _MeasurementPageState extends State<MeasurementPage> {
                             FocusScope.of(
                               context,
                             ).unfocus();
-                            final value = double.tryParse(
-                              controller.text,
-                            );
-                            if (value != null &&
-                                value >= 0) {
+                            double value;
+
+                            if (isImperial) {
+                              final measurementService =
+                                  Get.find<
+                                    MeasurementService
+                                  >();
+                              final feet =
+                                  int.tryParse(
+                                    feetController.text,
+                                  ) ??
+                                  0;
+                              final inches =
+                                  int.tryParse(
+                                    inchesController.text,
+                                  ) ??
+                                  0;
+                              value = measurementService
+                                  .feetInchesToDecimalFeet(
+                                    feet,
+                                    inches,
+                                  );
+                            } else {
+                              value =
+                                  double.tryParse(
+                                    controller.text,
+                                  ) ??
+                                  0.0;
+                            }
+
+                            if (value >= 0) {
                               onConfirm(value);
                               Navigator.of(ctx).pop();
                             } else {
@@ -569,7 +615,7 @@ class _MeasurementPageState extends State<MeasurementPage> {
                                         'Invalid Input',
                                       ),
                                       content: const Text(
-                                        'Please enter a valid positive number.',
+                                        'Please enter valid positive numbers.',
                                       ),
                                       actions: [
                                         CupertinoDialogAction(
@@ -612,7 +658,9 @@ class _MeasurementPageState extends State<MeasurementPage> {
                     child: Column(
                       children: [
                         Text(
-                          'Enter value:',
+                          isImperial
+                              ? 'Enter feet and inches:'
+                              : 'Enter value:',
                           style: AppTextStyle.bodyMedium,
                         ),
                         const SizedBox(height: 8),
@@ -628,90 +676,184 @@ class _MeasurementPageState extends State<MeasurementPage> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        CupertinoTextField(
-                          controller: controller,
-                          keyboardType:
-                              TextInputType.numberWithOptions(
-                                decimal: true,
+                        if (isImperial) ...[
+                          // Imperial: Feet and inches input
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      'Feet',
+                                      style:
+                                          AppTextStyle
+                                              .bodySmall,
+                                    ),
+                                    const SizedBox(
+                                      height: 8,
+                                    ),
+                                    CupertinoTextField(
+                                      controller:
+                                          feetController,
+                                      keyboardType:
+                                          TextInputType
+                                              .number,
+                                      placeholder: '0',
+                                      textAlign:
+                                          TextAlign.center,
+                                      style:
+                                          AppTextStyle
+                                              .titleMedium,
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.allow(
+                                          RegExp(r'^\d*$'),
+                                        ),
+                                      ],
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color:
+                                              AppColors
+                                                  .primaryColor,
+                                        ),
+                                        borderRadius:
+                                            BorderRadius.circular(
+                                              8,
+                                            ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                          placeholder: '0.00',
-                          textAlign: TextAlign.center,
-                          style: AppTextStyle.titleMedium,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(
-                              RegExp(r'^\d*\.?\d{0,2}$'),
-                            ),
-                          ],
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: AppColors.primaryColor,
-                            ),
-                            borderRadius:
-                                BorderRadius.circular(8),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      'Inches',
+                                      style:
+                                          AppTextStyle
+                                              .bodySmall,
+                                    ),
+                                    const SizedBox(
+                                      height: 8,
+                                    ),
+                                    CupertinoTextField(
+                                      controller:
+                                          inchesController,
+                                      keyboardType:
+                                          TextInputType
+                                              .number,
+                                      placeholder: '0',
+                                      textAlign:
+                                          TextAlign.center,
+                                      style:
+                                          AppTextStyle
+                                              .titleMedium,
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.allow(
+                                          RegExp(r'^\d*$'),
+                                        ),
+                                      ],
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color:
+                                              AppColors
+                                                  .primaryColor,
+                                        ),
+                                        borderRadius:
+                                            BorderRadius.circular(
+                                              8,
+                                            ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                          onChanged: (value) {
-                            if (value.isNotEmpty) {
-                              // Only allow numbers and one decimal point
-                              final cleanValue = value
-                                  .replaceAll(
-                                    RegExp(r'[^\d.]'),
-                                    '',
-                                  );
-
-                              // Ensure only one decimal point
-                              final parts = cleanValue
-                                  .split('.');
-                              if (parts.length > 2) {
-                                // If multiple decimal points, keep only the first one
-                                controller.text =
-                                    '${parts[0]}.${parts.sublist(1).join('')}';
-                                controller.selection =
-                                    TextSelection.fromPosition(
-                                      TextPosition(
-                                        offset:
-                                            controller
-                                                .text
-                                                .length,
-                                      ),
+                        ] else ...[
+                          // Metric: Decimal input
+                          CupertinoTextField(
+                            controller: controller,
+                            keyboardType:
+                                TextInputType.numberWithOptions(
+                                  decimal: true,
+                                ),
+                            placeholder: '0.00',
+                            textAlign: TextAlign.center,
+                            style: AppTextStyle.titleMedium,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                RegExp(r'^\d*\.?\d{0,2}$'),
+                              ),
+                            ],
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color:
+                                    AppColors.primaryColor,
+                              ),
+                              borderRadius:
+                                  BorderRadius.circular(8),
+                            ),
+                            onChanged: (value) {
+                              if (value.isNotEmpty) {
+                                final cleanValue = value
+                                    .replaceAll(
+                                      RegExp(r'[^\d.]'),
+                                      '',
                                     );
-                                return;
-                              }
+                                final parts = cleanValue
+                                    .split('.');
 
-                              // If there's a decimal point, limit to 2 decimal places
-                              if (parts.length == 2 &&
-                                  parts[1].length > 2) {
-                                controller.text =
-                                    '${parts[0]}.${parts[1].substring(0, 2)}';
-                                controller.selection =
-                                    TextSelection.fromPosition(
-                                      TextPosition(
-                                        offset:
-                                            controller
-                                                .text
-                                                .length,
-                                      ),
-                                    );
-                                return;
-                              }
+                                if (parts.length > 2) {
+                                  controller.text =
+                                      '${parts[0]}.${parts.sublist(1).join('')}';
+                                  controller.selection =
+                                      TextSelection.fromPosition(
+                                        TextPosition(
+                                          offset:
+                                              controller
+                                                  .text
+                                                  .length,
+                                        ),
+                                      );
+                                  return;
+                                }
 
-                              // Update the controller text if it's different
-                              if (controller.text !=
-                                  cleanValue) {
-                                controller.text =
-                                    cleanValue;
-                                controller.selection =
-                                    TextSelection.fromPosition(
-                                      TextPosition(
-                                        offset:
-                                            controller
-                                                .text
-                                                .length,
-                                      ),
-                                    );
+                                if (parts.length == 2 &&
+                                    parts[1].length > 2) {
+                                  controller.text =
+                                      '${parts[0]}.${parts[1].substring(0, 2)}';
+                                  controller.selection =
+                                      TextSelection.fromPosition(
+                                        TextPosition(
+                                          offset:
+                                              controller
+                                                  .text
+                                                  .length,
+                                        ),
+                                      );
+                                  return;
+                                }
+
+                                if (controller.text !=
+                                    cleanValue) {
+                                  controller.text =
+                                      cleanValue;
+                                  controller.selection =
+                                      TextSelection.fromPosition(
+                                        TextPosition(
+                                          offset:
+                                              controller
+                                                  .text
+                                                  .length,
+                                        ),
+                                      );
+                                }
                               }
-                            }
-                          },
-                        ),
+                            },
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -727,6 +869,146 @@ class _MeasurementPageState extends State<MeasurementPage> {
     required double currentValue,
     required ValueChanged<double> onConfirm,
   }) async {
+    final isImperial =
+        _controller.getCurrentUnit() == 'Imperial';
+
+    if (isImperial) {
+      final measurementService =
+          Get.find<MeasurementService>();
+      final feetInches = measurementService
+          .decimalFeetToFeetInches(currentValue);
+      int feetIndex = feetInches['feet']!.clamp(0, 200);
+      int inchesIndex = feetInches['inches']!.clamp(0, 11);
+      final feet = List<int>.generate(201, (i) => i);
+      final inches = List<int>.generate(12, (i) => i);
+
+      await showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder:
+            (ctx) => Container(
+              constraints: BoxConstraints(
+                maxHeight:
+                    MediaQuery.of(ctx).size.height * 0.6,
+                minHeight: 300,
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 8),
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(
+                        2,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 44,
+                    child: Row(
+                      mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
+                      children: [
+                        CupertinoButton(
+                          padding:
+                              const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                          child: const Text('Cancel'),
+                          onPressed:
+                              () => Navigator.of(ctx).pop(),
+                        ),
+                        Text(
+                          title,
+                          style: AppTextStyle.titleSmall,
+                        ),
+                        CupertinoButton(
+                          padding:
+                              const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                          child: const Text('Done'),
+                          onPressed: () {
+                            FocusScope.of(
+                              context,
+                            ).unfocus();
+                            final value = measurementService
+                                .feetInchesToDecimalFeet(
+                                  feet[feetIndex],
+                                  inches[inchesIndex],
+                                );
+                            onConfirm(value);
+                            Navigator.of(ctx).pop();
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: CupertinoPicker(
+                            scrollController:
+                                FixedExtentScrollController(
+                                  initialItem: feetIndex,
+                                ),
+                            itemExtent: 32,
+                            onSelectedItemChanged:
+                                (x) => feetIndex = x,
+                            children:
+                                feet
+                                    .map(
+                                      (v) => Center(
+                                        child: Text(
+                                          '$v ft',
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                          ),
+                        ),
+                        Expanded(
+                          child: CupertinoPicker(
+                            scrollController:
+                                FixedExtentScrollController(
+                                  initialItem: inchesIndex,
+                                ),
+                            itemExtent: 32,
+                            onSelectedItemChanged:
+                                (x) => inchesIndex = x,
+                            children:
+                                inches
+                                    .map(
+                                      (v) => Center(
+                                        child: Text(
+                                          '$v in',
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+      );
+      return;
+    }
+
     final ints = List<int>.generate(
       201,
       (i) => i,
