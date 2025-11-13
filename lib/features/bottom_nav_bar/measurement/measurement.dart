@@ -1,6 +1,7 @@
 import 'package:clay_rigging_bridle/features/bottom_nav_bar/measurement/measurement_controller.dart';
 import 'package:clay_rigging_bridle/features/bottom_nav_bar/setting_screen/setting_screen.dart';
 import 'package:clay_rigging_bridle/features/common/measurement_service.dart';
+import 'package:clay_rigging_bridle/features/common/preferences_service.dart';
 import 'package:clay_rigging_bridle/utils/app_assets.dart';
 import 'package:clay_rigging_bridle/utils/app_colors.dart';
 import 'package:clay_rigging_bridle/utils/app_text_styles.dart';
@@ -24,6 +25,8 @@ class _MeasurementPageState extends State<MeasurementPage> {
   final MeasurementController _controller = Get.put(
     MeasurementController(),
   );
+  final PreferencesService _preferencesService =
+      Get.find<PreferencesService>();
   final GlobalKey<ShowCaseWidgetState> _showcaseKey =
       GlobalKey<ShowCaseWidgetState>();
   final GlobalKey _resetShowcaseKey = GlobalKey();
@@ -36,8 +39,19 @@ class _MeasurementPageState extends State<MeasurementPage> {
   @override
   void initState() {
     super.initState();
+    _scheduleShowcase();
+  }
+
+  Future<void> _scheduleShowcase() async {
+    final hasSeen =
+        await _preferencesService
+            .isMeasurementShowcaseSeen();
+    if (hasSeen || !mounted) {
+      return;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      _preferencesService.setMeasurementShowcaseSeen(true);
       _showcaseKey.currentState?.startShowCase([
         _resetShowcaseKey,
         _weightDragShowcaseKey,
@@ -58,6 +72,11 @@ class _MeasurementPageState extends State<MeasurementPage> {
   Widget build(BuildContext context) {
     return ShowCaseWidget(
       key: _showcaseKey,
+      onFinish: () {
+        _preferencesService.setMeasurementShowcaseSeen(
+          true,
+        );
+      },
       builder:
           (context) => GestureDetector(
             onTap: () => FocusScope.of(context).unfocus(),

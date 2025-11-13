@@ -14,6 +14,12 @@ class PreferencesService extends GetxController {
   static const String _rightDropKey = 'rightDrop';
   static const String _pointDistKey = 'pointDist';
   static const String _apexHeightKey = 'apexHeight';
+  static const String _measurementShowcaseSeenKey =
+      'measurementShowcaseSeen';
+  static const String _weightShowcaseSeenKey =
+      'weightShowcaseSeen';
+  static const String _settingsShowcaseSeenKey =
+      'settingsShowcaseSeen';
 
   // Default values - Reset to 0 for testing
   static const String _defaultUnit = 'Metric';
@@ -190,5 +196,36 @@ class PreferencesService extends GetxController {
       prefs.setDouble(_pointDistKey, 0.0),
       prefs.setDouble(_apexHeightKey, 0.0),
     ]);
+  }
+
+  // Showcase tracking
+  Future<bool> isMeasurementShowcaseSeen() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_measurementShowcaseSeenKey) ?? false;
+  }
+
+  Future<void> setMeasurementShowcaseSeen(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_measurementShowcaseSeenKey, value);
+  }
+
+  Future<bool> isWeightShowcaseSeen() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_weightShowcaseSeenKey) ?? false;
+  }
+
+  Future<void> setWeightShowcaseSeen(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_weightShowcaseSeenKey, value);
+  }
+
+  Future<bool> isSettingsShowcaseSeen() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_settingsShowcaseSeenKey) ?? false;
+  }
+
+  Future<void> setSettingsShowcaseSeen(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_settingsShowcaseSeenKey, value);
   }
 }

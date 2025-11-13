@@ -1,11 +1,13 @@
 import 'dart:math';
 
 import 'package:clay_rigging_bridle/features/bottom_nav_bar/setting_screen/setting_screen.dart';
+import 'package:clay_rigging_bridle/features/common/preferences_service.dart';
 import 'package:clay_rigging_bridle/utils/app_assets.dart';
 import 'package:clay_rigging_bridle/utils/app_colors.dart';
 import 'package:clay_rigging_bridle/utils/app_text_styles.dart';
 import 'package:clay_rigging_bridle/widgets/primary_text_field.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:showcaseview/showcaseview.dart';
 
 class WeightScreen extends StatefulWidget {
@@ -20,6 +22,8 @@ class _WeightScreenState extends State<WeightScreen> {
       TextEditingController(text: '0');
   final TextEditingController _wllController =
       TextEditingController(text: '0');
+  final PreferencesService _preferencesService =
+      Get.find<PreferencesService>();
   final GlobalKey<ShowCaseWidgetState> _showcaseKey =
       GlobalKey<ShowCaseWidgetState>();
   final GlobalKey _infoShowcaseKey = GlobalKey();
@@ -86,8 +90,18 @@ class _WeightScreenState extends State<WeightScreen> {
   @override
   void initState() {
     super.initState();
+    _scheduleShowcase();
+  }
+
+  Future<void> _scheduleShowcase() async {
+    final hasSeen =
+        await _preferencesService.isWeightShowcaseSeen();
+    if (hasSeen || !mounted) {
+      return;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      _preferencesService.setWeightShowcaseSeen(true);
       _showcaseKey.currentState?.startShowCase([
         _infoShowcaseKey,
         _beamForceShowcaseKey,
@@ -112,6 +126,9 @@ class _WeightScreenState extends State<WeightScreen> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: ShowCaseWidget(
         key: _showcaseKey,
+        onFinish: () {
+          _preferencesService.setWeightShowcaseSeen(true);
+        },
         builder:
             (context) => Scaffold(
               resizeToAvoidBottomInset: false,

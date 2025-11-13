@@ -1,4 +1,5 @@
 import 'package:clay_rigging_bridle/features/common/measurement_service.dart';
+import 'package:clay_rigging_bridle/features/common/preferences_service.dart';
 import 'package:clay_rigging_bridle/utils/app_colors.dart';
 import 'package:clay_rigging_bridle/utils/app_labels.dart';
 import 'package:clay_rigging_bridle/utils/app_text_styles.dart';
@@ -23,6 +24,8 @@ class _SettingScreenState extends State<SettingScreen> {
   final MeasurementService _measurementService = Get.put(
     MeasurementService(),
   );
+  final PreferencesService _preferencesService =
+      Get.find<PreferencesService>();
   final GlobalKey<ShowCaseWidgetState> _showcaseKey =
       GlobalKey<ShowCaseWidgetState>();
   final GlobalKey _infoShowcaseKey = GlobalKey();
@@ -33,8 +36,18 @@ class _SettingScreenState extends State<SettingScreen> {
   @override
   void initState() {
     super.initState();
+    _scheduleShowcase();
+  }
+
+  Future<void> _scheduleShowcase() async {
+    final hasSeen =
+        await _preferencesService.isSettingsShowcaseSeen();
+    if (hasSeen || !mounted) {
+      return;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      _preferencesService.setSettingsShowcaseSeen(true);
       _showcaseKey.currentState?.startShowCase([
         _infoShowcaseKey,
         _unitShowcaseKey,
@@ -66,6 +79,9 @@ class _SettingScreenState extends State<SettingScreen> {
 
     return ShowCaseWidget(
       key: _showcaseKey,
+      onFinish: () {
+        _preferencesService.setSettingsShowcaseSeen(true);
+      },
       builder: (context) => Scaffold(
         body: SafeArea(
           child: SizedBox(
