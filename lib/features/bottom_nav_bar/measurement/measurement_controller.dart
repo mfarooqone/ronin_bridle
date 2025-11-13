@@ -50,9 +50,13 @@ class MeasurementController extends GetxController {
   //   await _preferencesService.resetAllMeasurementValues();
   // }
 
-  // Helper function to ensure values are non-negative
-  double _clampNonNegative(double value) {
-    return value.clamp(0.0, double.infinity);
+  // Helper function to apply deltas while keeping values non-negative
+  double _applyDelta(double currentValue, double delta) {
+    final updatedValue = currentValue + delta;
+    if (updatedValue.isNaN) {
+      return currentValue;
+    }
+    return updatedValue < 0 ? 0.0 : updatedValue;
   }
 
   // Check and convert values when unit changes
@@ -190,54 +194,48 @@ class MeasurementController extends GetxController {
 
   // Handle weight drag updates
   void handleWeightVerticalDrag(double delta) {
-    final clampedDelta = _clampNonNegative(delta);
     updateMultipleValues({
-      'leftLeg': leftLeg.value + clampedDelta,
-      'rightLeg': rightLeg.value + clampedDelta,
-      'apexHeight': apexHeight.value + clampedDelta,
+      'leftLeg': _applyDelta(leftLeg.value, delta),
+      'rightLeg': _applyDelta(rightLeg.value, delta),
+      'apexHeight': _applyDelta(apexHeight.value, delta),
     });
   }
 
   void handleWeightHorizontalDrag(double delta) {
-    final clampedDelta = _clampNonNegative(delta);
     updateMultipleValues({
-      'leftLeg': leftLeg.value + clampedDelta,
-      'rightLeg': rightLeg.value + clampedDelta,
-      'pointDist': pointDist.value + clampedDelta,
+      'leftLeg': _applyDelta(leftLeg.value, delta),
+      'rightLeg': _applyDelta(rightLeg.value, delta),
+      'pointDist': _applyDelta(pointDist.value, delta),
     });
   }
 
   // Handle left beam drag updates
   void handleLeftBeamVerticalDrag(double delta) {
-    final clampedDelta = _clampNonNegative(delta);
     updateMultipleValues({
-      'leftDrop': leftDrop.value + clampedDelta,
-      'leftLeg': leftLeg.value + clampedDelta,
+      'leftDrop': _applyDelta(leftDrop.value, delta),
+      'leftLeg': _applyDelta(leftLeg.value, delta),
     });
   }
 
   void handleLeftBeamHorizontalDrag(double delta) {
-    final clampedDelta = _clampNonNegative(delta);
     updateMultipleValues({
-      'beamDist': beamDist.value + clampedDelta,
-      'leftLeg': leftLeg.value + clampedDelta,
+      'beamDist': _applyDelta(beamDist.value, delta),
+      'leftLeg': _applyDelta(leftLeg.value, delta),
     });
   }
 
   // Handle right beam drag updates
   void handleRightBeamVerticalDrag(double delta) {
-    final clampedDelta = _clampNonNegative(delta);
     updateMultipleValues({
-      'rightDrop': rightDrop.value + clampedDelta,
-      'rightLeg': rightLeg.value + clampedDelta,
+      'rightDrop': _applyDelta(rightDrop.value, delta),
+      'rightLeg': _applyDelta(rightLeg.value, delta),
     });
   }
 
   void handleRightBeamHorizontalDrag(double delta) {
-    final clampedDelta = _clampNonNegative(delta);
     updateMultipleValues({
-      'beamDist': beamDist.value + clampedDelta,
-      'rightLeg': rightLeg.value + clampedDelta,
+      'beamDist': _applyDelta(beamDist.value, delta),
+      'rightLeg': _applyDelta(rightLeg.value, delta),
     });
   }
 

@@ -6,6 +6,7 @@ import 'package:clay_rigging_bridle/utils/app_colors.dart';
 import 'package:clay_rigging_bridle/utils/app_text_styles.dart';
 import 'package:clay_rigging_bridle/widgets/primary_text_field.dart';
 import 'package:flutter/material.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 class WeightScreen extends StatefulWidget {
   const WeightScreen({Key? key}) : super(key: key);
@@ -19,6 +20,13 @@ class _WeightScreenState extends State<WeightScreen> {
       TextEditingController(text: '0');
   final TextEditingController _wllController =
       TextEditingController(text: '0');
+  final GlobalKey<ShowCaseWidgetState> _showcaseKey =
+      GlobalKey<ShowCaseWidgetState>();
+  final GlobalKey _infoShowcaseKey = GlobalKey();
+  final GlobalKey _beamForceShowcaseKey = GlobalKey();
+  final GlobalKey _forceSummaryShowcaseKey = GlobalKey();
+  final GlobalKey _wllShowcaseKey = GlobalKey();
+  final GlobalKey _weightShowcaseKey = GlobalKey();
 
   // Force calculation results
   double _leftVertical = 0;
@@ -31,18 +39,21 @@ class _WeightScreenState extends State<WeightScreen> {
 
   /// Calculate forces based on weight and WLL (Working Load Limit)
   void _calculateForces() {
-    final weight = double.tryParse(_weightController.text) ?? 0;
+    final weight =
+        double.tryParse(_weightController.text) ?? 0;
     final wll = double.tryParse(_wllController.text) ?? 0;
-    
+
     // Validate inputs
     if (weight < 0 || wll < 0) {
       _resetForces();
       return;
     }
-    
+
     // Calculate forces using rigging bridle physics
-    final vertical = weight / 2; // Each leg carries half the weight
-    final horizontal = weight * 0.3; // Horizontal force component
+    final vertical =
+        weight / 2; // Each leg carries half the weight
+    final horizontal =
+        weight * 0.3; // Horizontal force component
     final legTension = sqrt(
       vertical * vertical + horizontal * horizontal,
     );
@@ -73,6 +84,21 @@ class _WeightScreenState extends State<WeightScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _showcaseKey.currentState?.startShowCase([
+        _infoShowcaseKey,
+        _beamForceShowcaseKey,
+        _forceSummaryShowcaseKey,
+        _wllShowcaseKey,
+        _weightShowcaseKey,
+      ]);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final w = size.width;
@@ -84,188 +110,236 @@ class _WeightScreenState extends State<WeightScreen> {
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
-        resizeToAvoidBottomInset: false,
-        body: SafeArea(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: w * 0.05,
-              ),
-              child: Column(
-                children: [
-                  Align(
-                    alignment: Alignment.topRight,
-                    child: IconButton(
-                      onPressed: () {
-                        showPreferencesDialog(
-                          context: context,
-                          title: "Weights",
-                          body:
-                              'In this window all the various loads within the bridle & beams are shown, to change the weight in the apex, tap the text field.',
-                        );
-                      },
-                      icon: Icon(
-                        Icons.info_outline,
-                        color: AppColors.primaryColor,
-                        size: 30,
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                      vertical: h * 0.02,
-                    ),
-                    child: BeamWidget(
-                      iconSize: iconSize,
-                      horizontalForce: _horizontal,
-                    ),
-                  ),
-                  Padding(
+      child: ShowCaseWidget(
+        key: _showcaseKey,
+        builder:
+            (context) => Scaffold(
+              resizeToAvoidBottomInset: false,
+              body: SafeArea(
+                child: SingleChildScrollView(
+                  child: Padding(
                     padding: EdgeInsets.symmetric(
                       horizontal: w * 0.05,
                     ),
-                    child: Row(
-                      mainAxisAlignment:
-                          MainAxisAlignment.spaceBetween,
+                    child: Column(
                       children: [
-                        _buildForce(
-                          1.5,
-                          'Vertical',
-                          _leftVertical,
-                          iconSize,
+                        Align(
+                          alignment: Alignment.topRight,
+                          child: Showcase(
+                            key: _infoShowcaseKey,
+                            title: 'Need a refresher?',
+                            description:
+                                'Tap the info icon any time to review how the weight calculations work.',
+                            child: IconButton(
+                              onPressed: () {
+                                showPreferencesDialog(
+                                  context: context,
+                                  title: "Weights",
+                                  body:
+                                      'In this window all the various loads within the bridle & beams are shown, to change the weight in the apex, tap the text field.',
+                                );
+                              },
+                              icon: Icon(
+                                Icons.info_outline,
+                                color:
+                                    AppColors.primaryColor,
+                                size: 30,
+                              ),
+                            ),
+                          ),
                         ),
-                        _buildForce(
-                          1.0,
-                          'Leg',
-                          _leftLeg,
-                          iconSize,
-                          _leftLeg > _wllValue,
+                        Showcase(
+                          key: _beamForceShowcaseKey,
+                          title: 'Monitor horizontal force',
+                          description:
+                              'The beam diagram updates live to show the horizontal force between guards.',
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              vertical: h * 0.02,
+                            ),
+                            child: BeamWidget(
+                              iconSize: iconSize,
+                              horizontalForce: _horizontal,
+                            ),
+                          ),
                         ),
-                        SizedBox(width: w * 0.08),
-                        _buildForce(
-                          2.0,
-                          'Leg',
-                          _rightLeg,
-                          iconSize,
-                          _rightLeg > _wllValue,
+                        Showcase(
+                          key: _forceSummaryShowcaseKey,
+                          title: 'Track each leg',
+                          description:
+                              'These arrows display vertical and leg loads so you can compare against the WLL.',
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: w * 0.05,
+                            ),
+                            child: Row(
+                              mainAxisAlignment:
+                                  MainAxisAlignment
+                                      .spaceBetween,
+                              children: [
+                                _buildForce(
+                                  1.5,
+                                  'Vertical',
+                                  _leftVertical,
+                                  iconSize,
+                                ),
+                                _buildForce(
+                                  1.0,
+                                  'Leg',
+                                  _leftLeg,
+                                  iconSize,
+                                  _leftLeg > _wllValue,
+                                ),
+                                SizedBox(width: w * 0.08),
+                                _buildForce(
+                                  2.0,
+                                  'Leg',
+                                  _rightLeg,
+                                  iconSize,
+                                  _rightLeg > _wllValue,
+                                ),
+                                _buildForce(
+                                  1.5,
+                                  'Vertical',
+                                  _rightVertical,
+                                  iconSize,
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                        _buildForce(
-                          1.5,
-                          'Vertical',
-                          _rightVertical,
-                          iconSize,
+                        if (_isExceeded) ...[
+                          SizedBox(height: h * 0.02),
+                          Text(
+                            'Steel W.L.L. Exceeded!',
+                            style: AppTextStyle.titleSmall
+                                .copyWith(
+                                  color: AppColors.red,
+                                ),
+                          ),
+                        ],
+                        SizedBox(height: h * 0.02),
+
+                        // Input controls section
+                        Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment:
+                                  MainAxisAlignment.center,
+                              children: [
+                                Transform.rotate(
+                                  angle: 1,
+                                  child: Icon(
+                                    Icons.arrow_right_alt,
+                                    size: iconSize,
+                                  ),
+                                ),
+                                Transform.rotate(
+                                  angle: 2,
+                                  child: Icon(
+                                    Icons.arrow_right_alt,
+                                    size: iconSize,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Image.asset(
+                              AppAssets.weightImage,
+                              width: w * 0.25,
+                              fit: BoxFit.contain,
+                            ),
+                            SizedBox(height: h * 0.02),
+
+                            const Icon(
+                              Icons.arrow_downward,
+                              size: 32,
+                            ),
+                            SizedBox(height: h * 0.01),
+
+                            // Input fields for weight and WLL
+                            Row(
+                              children: [
+                                Showcase(
+                                  key: _wllShowcaseKey,
+                                  title: 'Set your limit',
+                                  description:
+                                      'Enter the steel working load limit so overloads are flagged automatically.',
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        'Steel W.L.L.',
+                                        style:
+                                            AppTextStyle
+                                                .bodySmall,
+                                      ),
+                                      SizedBox(
+                                        height: h * 0.01,
+                                      ),
+                                      SizedBox(
+                                        width: inputWidth,
+                                        height: inputHeight,
+                                        child: PrimaryTextField(
+                                          controller:
+                                              _wllController,
+                                          onChanged: (
+                                            value,
+                                          ) {
+                                            setState(() {
+                                              _calculateForces();
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(width: w * 0.05),
+
+                                // Weight input field
+                                Showcase(
+                                  key: _weightShowcaseKey,
+                                  title: 'Adjust load',
+                                  description:
+                                      'Update the apex weight here to see forces recalculate instantly.',
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                        'Weight',
+                                        style:
+                                            AppTextStyle
+                                                .bodySmall,
+                                      ),
+                                      SizedBox(
+                                        height: h * 0.01,
+                                      ),
+                                      SizedBox(
+                                        width: inputWidth,
+                                        height: inputHeight,
+                                        child: PrimaryTextField(
+                                          controller:
+                                              _weightController,
+                                          onChanged: (
+                                            value,
+                                          ) {
+                                            setState(() {
+                                              _calculateForces();
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
-                  if (_isExceeded) ...[
-                    SizedBox(height: h * 0.02),
-                    Text(
-                      'Steel W.L.L. Exceeded!',
-                      style: AppTextStyle.titleSmall
-                          .copyWith(color: AppColors.red),
-                    ),
-                  ],
-                  SizedBox(height: h * 0.02),
-
-                  // Input controls section
-                  Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment:
-                            MainAxisAlignment.center,
-                        children: [
-                          Transform.rotate(
-                            angle: 1,
-                            child: Icon(
-                              Icons.arrow_right_alt,
-                              size: iconSize,
-                            ),
-                          ),
-                          Transform.rotate(
-                            angle: 2,
-                            child: Icon(
-                              Icons.arrow_right_alt,
-                              size: iconSize,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Image.asset(
-                        AppAssets.weightImage,
-                        width: w * 0.25,
-                        fit: BoxFit.contain,
-                      ),
-                      SizedBox(height: h * 0.02),
-
-                      const Icon(
-                        Icons.arrow_downward,
-                        size: 32,
-                      ),
-                      SizedBox(height: h * 0.01),
-
-                      // Input fields for weight and WLL
-                      Row(
-                        children: [
-                          Column(
-                            children: [
-                              Text(
-                                'Steel W.L.L.',
-                                style:
-                                    AppTextStyle.bodySmall,
-                              ),
-                              SizedBox(height: h * 0.01),
-                              SizedBox(
-                                width: inputWidth,
-                                height: inputHeight,
-                                child: PrimaryTextField(
-                                  controller:
-                                      _wllController,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _calculateForces();
-                                    });
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(width: w * 0.05),
-
-                          // Weight input field
-                          Column(
-                            children: [
-                              Text(
-                                'Weight',
-                                style:
-                                    AppTextStyle.bodySmall,
-                              ),
-                              SizedBox(height: h * 0.01),
-                              SizedBox(
-                                width: inputWidth,
-                                height: inputHeight,
-                                child: PrimaryTextField(
-                                  controller:
-                                      _weightController,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _calculateForces();
-                                    });
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
+                ),
               ),
             ),
-          ),
-        ),
       ),
     );
   }
@@ -322,7 +396,7 @@ class BeamWidget extends StatelessWidget {
 
   /// Size of the arrow icons
   final double iconSize;
-  
+
   /// Horizontal force value to display
   final double horizontalForce;
 
