@@ -137,15 +137,13 @@ class MeasurementController extends GetxController {
           beamDist.value,
         );
 
-    // Validate the triangle
-    final validation =
-        AngleCalculationService.validateTriangle(
-          leftLeg.value,
-          rightLeg.value,
-          beamDist.value,
-        );
-
-    if (validation != "Valid triangle") {
+    // For rigging bridle calculations, we allow the angle calculation
+    // even if strict triangle validation fails, as the geometry may still
+    // be valid for rigging applications
+    // Only return 'Invalid' if the angle calculation itself is invalid (NaN)
+    if (apexAngle.isNaN ||
+        apexAngle < 0 ||
+        apexAngle > 180) {
       return 'Invalid';
     }
 
